@@ -10,16 +10,25 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BookingTokenRouteImport } from './routes/booking.$token'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
+import { Route as UsernameSlugRouteImport } from './routes/$username.$slug'
+import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsernameRoute = UsernameRouteImport.update({
+  id: '/$username',
+  path: '/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -29,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BookingTokenRoute = BookingTokenRouteImport.update({
+  id: '/booking/$token',
+  path: '/booking/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
@@ -52,65 +66,102 @@ const AuthenticatedAvailabilityRoute =
     path: '/availability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const UsernameSlugRoute = UsernameSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => UsernameRoute,
+} as any)
+const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
+  id: '/api/public/hooks/reminders',
+  path: '/api/public/hooks/reminders',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
+  '/$username/$slug': typeof UsernameSlugRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/booking/$token': typeof BookingTokenRoute
+  '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
+  '/$username/$slug': typeof UsernameSlugRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/booking/$token': typeof BookingTokenRoute
+  '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
+  '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/booking/$token': typeof BookingTokenRoute
+  '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$username'
     | '/auth'
+    | '/$username/$slug'
     | '/availability'
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/booking/$token'
+    | '/api/public/hooks/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$username'
     | '/auth'
+    | '/$username/$slug'
     | '/availability'
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/booking/$token'
+    | '/api/public/hooks/reminders'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/$username'
     | '/auth'
+    | '/$username/$slug'
     | '/_authenticated/availability'
     | '/_authenticated/dashboard'
     | '/_authenticated/event-types'
     | '/_authenticated/settings'
+    | '/booking/$token'
+    | '/api/public/hooks/reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  UsernameRoute: typeof UsernameRouteWithChildren
   AuthRoute: typeof AuthRoute
+  BookingTokenRoute: typeof BookingTokenRoute
+  ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -120,6 +171,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$username': {
+      id: '/$username'
+      path: '/$username'
+      fullPath: '/$username'
+      preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -134,6 +192,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking/$token': {
+      id: '/booking/$token'
+      path: '/booking/$token'
+      fullPath: '/booking/$token'
+      preLoaderRoute: typeof BookingTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/settings': {
@@ -164,6 +229,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAvailabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/$username/$slug': {
+      id: '/$username/$slug'
+      path: '/$slug'
+      fullPath: '/$username/$slug'
+      preLoaderRoute: typeof UsernameSlugRouteImport
+      parentRoute: typeof UsernameRoute
+    }
+    '/api/public/hooks/reminders': {
+      id: '/api/public/hooks/reminders'
+      path: '/api/public/hooks/reminders'
+      fullPath: '/api/public/hooks/reminders'
+      preLoaderRoute: typeof ApiPublicHooksRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -184,21 +263,26 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface UsernameRouteChildren {
+  UsernameSlugRoute: typeof UsernameSlugRoute
+}
+
+const UsernameRouteChildren: UsernameRouteChildren = {
+  UsernameSlugRoute: UsernameSlugRoute,
+}
+
+const UsernameRouteWithChildren = UsernameRoute._addFileChildren(
+  UsernameRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  UsernameRoute: UsernameRouteWithChildren,
   AuthRoute: AuthRoute,
+  BookingTokenRoute: BookingTokenRoute,
+  ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
