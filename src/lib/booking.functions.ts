@@ -65,13 +65,18 @@ export const getAvailableSlots = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: et, error: etErr } = await supabaseAdmin
       .from("event_types")
-      .select("*, profiles!inner(timezone)")
+      .select("*")
       .eq("id", data.eventTypeId)
       .eq("active", true)
       .maybeSingle();
     if (etErr) throw new Error(etErr.message);
     if (!et) return { slots: [] as string[] };
-    const hostTimezone = (et.profiles as { timezone: string }).timezone;
+    const { data: hostProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("timezone")
+      .eq("id", et.user_id)
+      .maybeSingle();
+    const hostTimezone = hostProfile?.timezone ?? "UTC";
 
     const [{ data: rules }, { data: overrides }, { data: existing }] = await Promise.all([
       supabaseAdmin.from("availability_rules").select("*").eq("user_id", et.user_id),
@@ -190,10 +195,16 @@ export const getBookingByToken = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: booking } = await supabaseAdmin
       .from("bookings")
-      .select("*, event_types(title, duration_min), profiles!bookings_host_user_id_fkey(display_name, username, timezone)")
+      .select("*, event_types(title, duration_min)")
       .eq("cancel_token", data.token)
       .maybeSingle();
-    return booking ?? null;
+    if (!booking) return null;
+    const { data: host } = await supabaseAdmin
+      .from("profiles")
+      .select("display_name, username, timezone")
+      .eq("id", booking.host_user_id)
+      .maybeSingle();
+    return { ...booking, host };
   });
 
 // --- Cancel booking by token ---

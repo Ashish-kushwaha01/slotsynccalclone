@@ -46,7 +46,7 @@ export async function logAndDispatch(
     .insert({
       booking_id: evt.bookingId,
       event_type: evt.event,
-      payload: evt as unknown as Record<string, unknown>,
+      payload: JSON.parse(JSON.stringify(evt)),
       status: "pending",
       attempts: 0,
     })
