@@ -14,7 +14,286 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      availability_rules: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          start_time: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          cancel_reason: string | null
+          cancel_token: string
+          created_at: string
+          end_at: string
+          event_type_id: string
+          host_user_id: string
+          id: string
+          invitee_email: string
+          invitee_name: string
+          invitee_notes: string | null
+          invitee_timezone: string
+          reminder_sent: boolean
+          start_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          cancel_reason?: string | null
+          cancel_token?: string
+          created_at?: string
+          end_at: string
+          event_type_id: string
+          host_user_id: string
+          id?: string
+          invitee_email: string
+          invitee_name: string
+          invitee_notes?: string | null
+          invitee_timezone?: string
+          reminder_sent?: boolean
+          start_at: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          cancel_reason?: string | null
+          cancel_token?: string
+          created_at?: string
+          end_at?: string
+          event_type_id?: string
+          host_user_id?: string
+          id?: string
+          invitee_email?: string
+          invitee_name?: string
+          invitee_notes?: string | null
+          invitee_timezone?: string
+          reminder_sent?: boolean
+          start_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_event_type_id_fkey"
+            columns: ["event_type_id"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      date_overrides: {
+        Row: {
+          created_at: string
+          end_time: string | null
+          id: string
+          is_unavailable: boolean
+          override_date: string
+          start_time: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_unavailable?: boolean
+          override_date: string
+          start_time?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_time?: string | null
+          id?: string
+          is_unavailable?: boolean
+          override_date?: string
+          start_time?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      event_types: {
+        Row: {
+          active: boolean
+          buffer_after_min: number
+          buffer_before_min: number
+          color: string
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          location: string | null
+          max_advance_days: number
+          min_notice_min: number
+          slug: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          buffer_after_min?: number
+          buffer_before_min?: number
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration_min: number
+          id?: string
+          location?: string | null
+          max_advance_days?: number
+          min_notice_min?: number
+          slug: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          buffer_after_min?: number
+          buffer_before_min?: number
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          location?: string | null
+          max_advance_days?: number
+          min_notice_min?: number
+          slug?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      google_calendar_connections: {
+        Row: {
+          calendar_id: string
+          connection_key_ciphertext: string
+          created_at: string
+          email: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calendar_id?: string
+          connection_key_ciphertext: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calendar_id?: string
+          connection_key_ciphertext?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string
+          id: string
+          timezone: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name: string
+          id: string
+          timezone?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          timezone?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          booking_id: string | null
+          created_at: string
+          event_type: string
+          id: string
+          last_attempt_at: string | null
+          last_error: string | null
+          payload: Json
+          status: string
+        }
+        Insert: {
+          attempts?: number
+          booking_id?: string | null
+          created_at?: string
+          event_type: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          payload: Json
+          status?: string
+        }
+        Update: {
+          attempts?: number
+          booking_id?: string | null
+          created_at?: string
+          event_type?: string
+          id?: string
+          last_attempt_at?: string | null
+          last_error?: string | null
+          payload?: Json
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
