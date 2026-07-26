@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "SlotSync — Scheduling without the back-and-forth" },
       {
         property: "og:description",
-        content: "Share one link. Sync your calendar. Book meetings in under a minute.",
+        content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
     ],
   }),

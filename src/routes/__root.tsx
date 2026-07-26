@@ -83,16 +83,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "SlotSync is a modern scheduling platform. Share your link, sync your calendar, and let invitees book meetings that fit your real availability.",
+          "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
       { name: "author", content: "SlotSync" },
       { property: "og:title", content: "SlotSync — Scheduling without the back-and-forth" },
       {
         property: "og:description",
-        content: "Share your link, sync your calendar, and let invitees book instantly.",
+        content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "SlotSync — Scheduling without the back-and-forth" },
+      { name: "twitter:description", content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f8279a7e-067e-4c39-ac95-aedf2f00897c/id-preview-f33461b9--e01163a3-4740-426b-ac8c-561da6acbe2c.lovable.app-1785053947638.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f8279a7e-067e-4c39-ac95-aedf2f00897c/id-preview-f33461b9--e01163a3-4740-426b-ac8c-561da6acbe2c.lovable.app-1785053947638.png" },
     ],
     links: [
       {
@@ -100,7 +104,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
       },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
