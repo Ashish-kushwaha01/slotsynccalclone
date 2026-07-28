@@ -5,10 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * SlotSync design system.
- * Deep petroleum blue (from the logo mark) as the primary brand color,
- * warm coral as the accent (the red dot on the logo orbit).
- * Clean, modern, professional — plenty of whitespace, subtle borders.
+ * SlotSync — clean, professional scheduling UI.
+ * Deep navy ink, bright blue accents, light-blue selection surfaces,
+ * near-black action buttons. Inspired by clean modern scheduling tools.
  */
 
 @theme inline {
@@ -35,6 +34,9 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-soft: var(--brand-soft);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
   --color-success: var(--success);
@@ -42,53 +44,66 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-active-foreground: var(--sidebar-active-foreground);
 
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-soft: 0 1px 2px 0 oklch(0.2 0.05 230 / 0.04), 0 4px 12px -2px oklch(0.2 0.05 230 / 0.06);
-  --shadow-lift: 0 4px 8px -2px oklch(0.2 0.05 230 / 0.06), 0 16px 32px -8px oklch(0.2 0.05 230 / 0.10);
+  --shadow-soft: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 2px 8px -2px rgb(15 23 42 / 0.06);
+  --shadow-lift: 0 4px 10px -3px rgb(15 23 42 / 0.08), 0 20px 40px -10px rgb(15 23 42 / 0.12);
+  --shadow-drawer: -8px 0 32px -8px rgb(15 23 42 / 0.12);
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
 
-  /* Warm off-white background, deep slate ink */
-  --background: oklch(0.985 0.005 95);
-  --foreground: oklch(0.22 0.03 235);
+  --background: oklch(0.985 0.003 240);
+  --foreground: oklch(0.22 0.05 250);
 
   --surface: oklch(1 0 0);
-  --surface-foreground: oklch(0.22 0.03 235);
+  --surface-foreground: oklch(0.22 0.05 250);
 
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.03 235);
+  --card-foreground: oklch(0.22 0.05 250);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.03 235);
+  --popover-foreground: oklch(0.22 0.05 250);
 
-  /* Deep petroleum blue from the SlotSync mark */
-  --primary: oklch(0.44 0.09 232);
-  --primary-foreground: oklch(0.99 0.005 95);
+  /* Primary = near-black (for "Create", "Save" buttons like Calendly) */
+  --primary: oklch(0.19 0.03 250);
+  --primary-foreground: oklch(0.99 0.005 240);
 
-  --secondary: oklch(0.955 0.012 230);
-  --secondary-foreground: oklch(0.28 0.06 232);
+  /* Brand = SlotSync blue for links, highlights, focus */
+  --brand: oklch(0.55 0.18 255);
+  --brand-foreground: oklch(0.99 0.005 240);
+  --brand-soft: oklch(0.96 0.03 255);
 
-  --muted: oklch(0.96 0.008 230);
-  --muted-foreground: oklch(0.5 0.02 235);
+  --secondary: oklch(0.965 0.008 250);
+  --secondary-foreground: oklch(0.28 0.05 250);
 
-  /* Coral accent — the red dot on the logo */
+  --muted: oklch(0.965 0.008 250);
+  --muted-foreground: oklch(0.52 0.02 250);
+
   --accent: oklch(0.68 0.19 25);
-  --accent-foreground: oklch(0.99 0.005 95);
+  --accent-foreground: oklch(0.99 0.005 240);
 
   --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.99 0.005 95);
+  --destructive-foreground: oklch(0.99 0.005 240);
 
   --success: oklch(0.62 0.14 155);
-  --success-foreground: oklch(0.99 0.005 95);
+  --success-foreground: oklch(0.99 0.005 240);
 
-  --border: oklch(0.9 0.012 230);
-  --input: oklch(0.92 0.012 230);
-  --ring: oklch(0.44 0.09 232);
+  --border: oklch(0.92 0.008 250);
+  --input: oklch(0.92 0.008 250);
+  --ring: oklch(0.55 0.18 255);
+
+  --sidebar: oklch(0.985 0.003 240);
+  --sidebar-foreground: oklch(0.32 0.03 250);
+  --sidebar-active: oklch(0.94 0.04 255);
+  --sidebar-active-foreground: oklch(0.45 0.18 255);
 }
 
 @layer base {
@@ -106,7 +121,8 @@
   }
   h1, h2, h3, h4 {
     font-family: var(--font-display);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.015em;
+    font-weight: 600;
   }
 }
 
@@ -119,4 +135,20 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
+}
+
+@utility btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60;
+}
+
+@utility btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-secondary disabled:opacity-60;
+}
+
+@utility btn-brand {
+  @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-brand-foreground transition hover:bg-brand/90 disabled:opacity-60;
+}
+
+@utility link-brand {
+  @apply text-brand hover:underline;
 }

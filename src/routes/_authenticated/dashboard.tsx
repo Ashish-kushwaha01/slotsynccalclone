@@ -1,172 +1,316 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { listMyBookings } from "@/lib/host.functions";
-import { getMyProfile } from "@/lib/host.functions";
-import { CalendarClock, ExternalLink, Copy, Check } from "lucide-react";
-import { useState } from "react";
+import {
+  listMyEventTypes,
+  upsertEventType,
+  deleteEventType,
+  getMyProfile,
+} from "@/lib/host.functions";
+import { EventTypeDrawer, type EventTypeDraft } from "@/components/EventTypeDrawer";
+import { CreateMenu } from "@/components/CreateMenu";
+import { useMemo, useState } from "react";
+import {
+  Search,
+  ExternalLink,
+  Link2,
+  MoreVertical,
+  Edit,
+  Copy,
+  Trash2,
+  Eye,
+  HelpCircle,
+} from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Bookings — SlotSync" }] }),
-  component: Dashboard,
+  head: () => ({ meta: [{ title: "Scheduling — SlotSync" }] }),
+  component: SchedulingPage,
 });
 
-function Dashboard() {
-  const fetchBookings = useServerFn(listMyBookings);
-  const fetchProfile = useServerFn(getMyProfile);
-  const bookingsQ = useQuery({ queryKey: ["my-bookings"], queryFn: () => fetchBookings() });
-  const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => fetchProfile() });
-  const [copied, setCopied] = useState(false);
+const TABS = ["Event types", "Single-use links", "Meeting polls", "Routing forms"] as const;
 
-  const now = new Date();
-  const upcoming = (bookingsQ.data ?? []).filter(
-    (b) => b.status === "confirmed" && new Date(b.start_at) >= now,
+function newDraft(): EventTypeDraft {
+  return {
+    slug: "new-meeting-" + Math.floor(Math.random() * 1000),
+    title: "New Meeting",
+    description: "",
+    duration_min: 30,
+    buffer_before_min: 0,
+    buffer_after_min: 0,
+    min_notice_min: 60,
+    max_advance_days: 60,
+    location: "Google Meet",
+    color: "#6366f1",
+    active: true,
+  };
+}
+
+function SchedulingPage() {
+  const listFn = useServerFn(listMyEventTypes);
+  const saveFn = useServerFn(upsertEventType);
+  const delFn = useServerFn(deleteEventType);
+  const profFn = useServerFn(getMyProfile);
+  const qc = useQueryClient();
+
+  const [tab, setTab] = useState<typeof TABS[number]>("Event types");
+  const [search, setSearch] = useState("");
+  const [drawer, setDrawer] = useState<EventTypeDraft | null>(null);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
+
+  const q = useQuery({ queryKey: ["my-event-types"], queryFn: () => listFn() });
+  const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => profFn() });
+
+  const save = useMutation({
+    mutationFn: (draft: EventTypeDraft) => saveFn({ data: draft }),
+    onSuccess: () => {
+      toast.success("Saved");
+      setDrawer(null);
+      qc.invalidateQueries({ queryKey: ["my-event-types"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const del = useMutation({
+    mutationFn: (id: string) => delFn({ data: { id } }),
+    onSuccess: () => {
+      toast.success("Deleted");
+      setDrawer(null);
+      qc.invalidateQueries({ queryKey: ["my-event-types"] });
+    },
+  });
+
+  const filtered = useMemo(
+    () => (q.data ?? []).filter((e) => e.title.toLowerCase().includes(search.toLowerCase())),
+    [q.data, search],
   );
-  const past = (bookingsQ.data ?? []).filter(
-    (b) => b.status !== "confirmed" || new Date(b.start_at) < now,
-  );
 
-  const bookingUrl =
-    typeof window !== "undefined" && profileQ.data
-      ? `${window.location.origin}/${profileQ.data.username}`
-      : "";
-
-  async function copyLink() {
-    if (!bookingUrl) return;
-    await navigator.clipboard.writeText(bookingUrl);
-    setCopied(true);
-    toast.success("Link copied");
-    setTimeout(() => setCopied(false), 2000);
-  }
+  const username = profileQ.data?.username ?? "";
+  const displayName = profileQ.data?.display_name ?? "You";
+  const publicUrl = (slug: string) =>
+    typeof window !== "undefined" ? `${window.location.origin}/${username}/${slug}` : "";
 
   return (
     <AppShell>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold text-foreground">Your bookings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Everything scheduled on your calendar.</p>
-        </div>
-        {profileQ.data && (
-          <div className="card-surface flex items-center gap-3 px-4 py-3">
-            <div>
-              <div className="text-xs text-muted-foreground">Your booking link</div>
-              <div className="font-mono text-sm font-medium text-foreground">
-                /{profileQ.data.username}
-              </div>
-            </div>
-            <button
-              onClick={copyLink}
-              className="rounded-md border border-border p-2 text-muted-foreground hover:bg-secondary"
-              title="Copy link"
-            >
-              {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
-            </button>
+      <div className="mx-auto max-w-5xl p-6 md:p-10">
+        {/* Header */}
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="flex items-center gap-2 text-2xl font-semibold text-foreground">
+            Scheduling
+            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+          </h1>
+          <div className="flex items-center gap-2">
             <Link
-              to="/$username"
-              params={{ username: profileQ.data.username }}
-              className="rounded-md border border-border p-2 text-muted-foreground hover:bg-secondary"
-              title="Open public page"
+              to="/settings"
+              search={{ tab: "availability" }}
+              className="btn-outline"
             >
-              <ExternalLink className="h-4 w-4" />
+              📅 Manage availability
             </Link>
+            <CreateMenu
+              onCreateOneOnOne={() => setDrawer(newDraft())}
+            />
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-4 border-b border-border">
+          <div className="flex gap-6">
+            {TABS.map((t) => (
+              <button
+                key={t}
+                onClick={() => {
+                  setTab(t);
+                  if (t !== "Event types") toast.info(`${t} coming soon`);
+                }}
+                className={cn(
+                  "-mb-px border-b-2 px-1 py-2.5 text-sm font-medium transition",
+                  t === tab
+                    ? "border-brand text-brand"
+                    : "border-transparent text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search event types"
+            className="w-full rounded-md border border-input bg-surface py-2.5 pl-10 pr-3 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-ring/30"
+          />
+        </div>
+
+        {tab !== "Event types" ? (
+          <EmptyTab label={tab} />
+        ) : (
+          <div className="card-surface overflow-hidden">
+            {/* Host row */}
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="text-sm font-semibold text-foreground">{displayName}</div>
+              </div>
+              {username && (
+                <a
+                  href={`/${username}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                >
+                  View landing page <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              )}
+            </div>
+
+            {/* Cards */}
+            {q.isLoading ? (
+              <div className="p-6 text-sm text-muted-foreground">Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div className="p-10 text-center">
+                <p className="text-sm text-muted-foreground">No event types yet.</p>
+                <button className="btn-brand mt-4" onClick={() => setDrawer(newDraft())}>
+                  Create your first event type
+                </button>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border p-4">
+                {filtered.map((et) => (
+                  <li
+                    key={et.id}
+                    className={cn(
+                      "relative flex items-center gap-4 rounded-md border-l-4 bg-surface px-4 py-4 my-1.5 shadow-soft",
+                      !et.active && "opacity-50",
+                    )}
+                    style={{ borderLeftColor: et.color }}
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-input"
+                      readOnly
+                    />
+                    <button
+                      onClick={() => setDrawer({ ...(et as EventTypeDraft) })}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <div className="text-sm font-semibold text-foreground">{et.title}</div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        {et.duration_min} min · {et.location || "No location"} · One-on-One
+                      </div>
+                      <div className="mt-1 text-xs text-muted-foreground">
+                        Weekdays, hours vary
+                      </div>
+                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(publicUrl(et.slug));
+                          toast.success("Link copied");
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary"
+                      >
+                        <Link2 className="h-3.5 w-3.5" /> Copy link
+                      </button>
+                      <a
+                        href={`/${username}/${et.slug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-md border border-border p-1.5 text-muted-foreground hover:bg-secondary"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                      <div className="relative">
+                        <button
+                          onClick={() => setMenuFor(menuFor === et.id ? null : et.id)}
+                          className={cn(
+                            "rounded-md border p-1.5",
+                            menuFor === et.id
+                              ? "border-brand bg-brand-soft text-brand"
+                              : "border-border text-muted-foreground hover:bg-secondary",
+                          )}
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                        {menuFor === et.id && (
+                          <div className="absolute right-0 top-full z-20 mt-1 w-52 overflow-hidden rounded-md border border-border bg-popover shadow-lift">
+                            <MenuItem icon={<Eye className="h-4 w-4" />} onClick={() => window.open(`/${username}/${et.slug}`, "_blank")}>View booking page</MenuItem>
+                            <MenuItem icon={<Edit className="h-4 w-4" />} onClick={() => { setMenuFor(null); setDrawer({ ...(et as EventTypeDraft) }); }}>Edit</MenuItem>
+                            <MenuItem icon={<Copy className="h-4 w-4" />} onClick={() => {
+                              setMenuFor(null);
+                              setDrawer({ ...(et as EventTypeDraft), id: undefined, slug: et.slug + "-copy", title: et.title + " (copy)" });
+                            }}>Duplicate</MenuItem>
+                            <div className="border-t border-border" />
+                            <MenuItem icon={<Trash2 className="h-4 w-4 text-destructive" />} onClick={() => { setMenuFor(null); if (confirm("Delete this event type?")) del.mutate(et.id); }}>
+                              <span className="text-destructive">Delete</span>
+                            </MenuItem>
+                          </div>
+                        )}
+                      </div>
+                      <label className="ml-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <input
+                          type="checkbox"
+                          checked={et.active}
+                          onChange={(e) =>
+                            save.mutate({ ...(et as EventTypeDraft), active: e.target.checked })
+                          }
+                          className="peer sr-only"
+                        />
+                        <span className="relative inline-block h-5 w-9 rounded-full bg-muted peer-checked:bg-brand transition">
+                          <span className={cn(
+                            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-surface transition",
+                            et.active && "translate-x-4",
+                          )} />
+                        </span>
+                      </label>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
       </div>
 
-      <section className="mb-10">
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Upcoming ({upcoming.length})
-        </h2>
-        <div className="space-y-2">
-          {bookingsQ.isLoading && <SkeletonCards />}
-          {!bookingsQ.isLoading && upcoming.length === 0 && (
-            <EmptyState message="No upcoming bookings yet. Share your link to get started." />
-          )}
-          {upcoming.map((b) => (
-            <BookingRow key={b.id} booking={b} />
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-          Past & cancelled
-        </h2>
-        <div className="space-y-2">
-          {past.slice(0, 20).map((b) => (
-            <BookingRow key={b.id} booking={b} muted />
-          ))}
-          {past.length === 0 && <EmptyState message="Nothing here yet." />}
-        </div>
-      </section>
+      <EventTypeDrawer
+        open={!!drawer}
+        initial={drawer}
+        hostName={displayName}
+        onClose={() => setDrawer(null)}
+        onSave={(d) => save.mutate(d)}
+        onDelete={drawer?.id ? () => del.mutate(drawer.id!) : undefined}
+        onPreview={() => drawer && username && window.open(`/${username}/${drawer.slug}`, "_blank")}
+        saving={save.isPending}
+      />
     </AppShell>
   );
 }
 
-function BookingRow({ booking, muted = false }: { booking: any; muted?: boolean }) {
-  const start = new Date(booking.start_at);
+function MenuItem({ icon, children, onClick }: { icon: React.ReactNode; children: React.ReactNode; onClick: () => void }) {
   return (
-    <div
-      className={
-        "card-surface flex flex-wrap items-center justify-between gap-4 p-4 " +
-        (muted ? "opacity-70" : "")
-      }
-    >
-      <div className="flex items-center gap-4">
-        <div
-          className="flex h-12 w-12 flex-col items-center justify-center rounded-md text-primary-foreground"
-          style={{ backgroundColor: booking.event_types?.color ?? "var(--color-primary)" }}
-        >
-          <div className="text-[10px] font-bold uppercase leading-none">
-            {start.toLocaleDateString(undefined, { month: "short" })}
-          </div>
-          <div className="text-lg font-bold leading-tight">{start.getDate()}</div>
-        </div>
-        <div>
-          <div className="font-semibold text-foreground">
-            {booking.event_types?.title ?? "Meeting"}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {start.toLocaleString(undefined, {
-              weekday: "short",
-              hour: "numeric",
-              minute: "2-digit",
-            })}{" "}
-            · with {booking.invitee_name} ({booking.invitee_email})
-          </div>
-        </div>
-      </div>
-      <span
-        className={
-          "rounded-full px-2.5 py-1 text-xs font-medium " +
-          (booking.status === "confirmed"
-            ? "bg-success/10 text-success"
-            : "bg-muted text-muted-foreground")
-        }
-      >
-        {booking.status}
-      </span>
-    </div>
+    <button onClick={onClick} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-secondary">
+      {icon}
+      {children}
+    </button>
   );
 }
 
-function EmptyState({ message }: { message: string }) {
+function EmptyTab({ label }: { label: string }) {
   return (
-    <div className="card-surface flex items-center gap-3 p-6 text-sm text-muted-foreground">
-      <CalendarClock className="h-5 w-5" />
-      {message}
+    <div className="card-surface flex flex-col items-center justify-center gap-2 p-14 text-center">
+      <div className="text-lg font-semibold text-foreground">{label}</div>
+      <p className="max-w-sm text-sm text-muted-foreground">
+        This section is on the way. We'll enable it in a future update.
+      </p>
     </div>
-  );
-}
-
-function SkeletonCards() {
-  return (
-    <>
-      {[0, 1, 2].map((i) => (
-        <div key={i} className="card-surface h-20 animate-pulse" />
-      ))}
-    </>
   );
 }
