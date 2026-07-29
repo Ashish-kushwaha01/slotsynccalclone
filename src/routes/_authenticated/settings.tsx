@@ -304,7 +304,16 @@ function ProfileTab() {
 
 function CalendarTab() {
   const [sub, setSub] = useState<"calendar" | "advanced">("calendar");
-  const connected = false; // Placeholder until Google OAuth wired
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const connected = false;
+
+  const startConnect = (provider: "google" | "microsoft") => {
+    setPickerOpen(false);
+    const label = provider === "google" ? "Google Calendar" : "Microsoft Outlook Calendar";
+    toast.info(
+      `${label} OAuth isn't configured yet. Add the OAuth client credentials to enable one-click connect.`,
+    );
+  };
 
   return (
     <SettingsCard title="Calendar">
@@ -333,10 +342,7 @@ function CalendarTab() {
                 <div className="text-sm font-semibold text-foreground">Calendars to check for conflicts</div>
                 <div className="text-xs text-muted-foreground">These calendars will be used to prevent double bookings</div>
               </div>
-              <button
-                onClick={() => toast.info("Add GOOGLE_CALENDAR_CLIENT_ID / SECRET to connect")}
-                className="btn-outline"
-              >
+              <button onClick={() => setPickerOpen(true)} className="btn-outline">
                 <Plus className="h-4 w-4" /> Connect calendar account
               </button>
             </div>
@@ -371,6 +377,48 @@ function CalendarTab() {
             <label className="mt-1 flex items-center gap-2 text-sm text-foreground">
               <input type="checkbox" disabled defaultChecked /> Automatically sync changes from this calendar to SlotSync
             </label>
+          </div>
+        </div>
+      )}
+
+      {pickerOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => setPickerOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-surface p-6 shadow-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold text-foreground">Choose a calendar to connect</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              SlotSync will check this calendar for conflicts and add new bookings to it.
+            </p>
+            <div className="mt-5 space-y-2">
+              <button
+                onClick={() => startConnect("google")}
+                className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
+              >
+                <span className="text-2xl">📅</span>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Google Calendar</div>
+                  <div className="text-xs text-muted-foreground">Sync with your Google account</div>
+                </div>
+              </button>
+              <button
+                onClick={() => startConnect("microsoft")}
+                className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
+              >
+                <span className="text-2xl">📧</span>
+                <div>
+                  <div className="text-sm font-semibold text-foreground">Microsoft Outlook</div>
+                  <div className="text-xs text-muted-foreground">Sync with Outlook / Microsoft 365</div>
+                </div>
+              </button>
+            </div>
+            <div className="mt-5 flex justify-end">
+              <button onClick={() => setPickerOpen(false)} className="btn-outline">Cancel</button>
+            </div>
           </div>
         </div>
       )}
