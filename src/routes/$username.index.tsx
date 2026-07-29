@@ -5,7 +5,7 @@ import { getPublicHostPage } from "@/lib/booking.functions";
 import { BrandMark } from "@/components/BrandMark";
 import { Clock, MapPin, ArrowRight } from "lucide-react";
 
-export const Route = createFileRoute("/$username")({
+export const Route = createFileRoute("/$username/")({
   head: ({ params }) => ({
     meta: [
       { title: `Book time with @${params.username} — SlotSync` },

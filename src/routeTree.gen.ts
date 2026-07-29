@@ -10,9 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as UsernameIndexRouteImport } from './routes/$username.index'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
@@ -29,11 +29,6 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const UsernameRoute = UsernameRouteImport.update({
-  id: '/$username',
-  path: '/$username',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -41,6 +36,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsernameIndexRoute = UsernameIndexRouteImport.update({
+  id: '/$username/',
+  path: '/$username/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BookingTokenRoute = BookingTokenRouteImport.update({
@@ -98,7 +98,6 @@ const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
@@ -109,11 +108,11 @@ export interface FileRoutesByFullPath {
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/$username/': typeof UsernameIndexRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
@@ -124,13 +123,13 @@ export interface FileRoutesByTo {
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/$username': typeof UsernameIndexRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/$username': typeof UsernameRouteWithChildren
   '/auth': typeof AuthRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
@@ -141,13 +140,13 @@ export interface FileRoutesById {
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/booking/$token': typeof BookingTokenRoute
+  '/$username/': typeof UsernameIndexRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$username'
     | '/auth'
     | '/$username/$slug'
     | '/automations'
@@ -158,11 +157,11 @@ export interface FileRouteTypes {
     | '/event-types'
     | '/settings'
     | '/booking/$token'
+    | '/$username/'
     | '/api/public/hooks/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$username'
     | '/auth'
     | '/$username/$slug'
     | '/automations'
@@ -173,12 +172,12 @@ export interface FileRouteTypes {
     | '/event-types'
     | '/settings'
     | '/booking/$token'
+    | '/$username'
     | '/api/public/hooks/reminders'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
-    | '/$username'
     | '/auth'
     | '/$username/$slug'
     | '/_authenticated/automations'
@@ -189,15 +188,16 @@ export interface FileRouteTypes {
     | '/_authenticated/event-types'
     | '/_authenticated/settings'
     | '/booking/$token'
+    | '/$username/'
     | '/api/public/hooks/reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  UsernameRoute: typeof UsernameRouteWithChildren
   AuthRoute: typeof AuthRoute
   BookingTokenRoute: typeof BookingTokenRoute
+  UsernameIndexRoute: typeof UsernameIndexRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
 }
 
@@ -208,13 +208,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$username': {
-      id: '/$username'
-      path: '/$username'
-      fullPath: '/$username'
-      preLoaderRoute: typeof UsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -229,6 +222,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$username/': {
+      id: '/$username/'
+      path: '/$username'
+      fullPath: '/$username/'
+      preLoaderRoute: typeof UsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/booking/$token': {
@@ -327,26 +327,24 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface UsernameRouteChildren {
-  UsernameSlugRoute: typeof UsernameSlugRoute
-}
-
-const UsernameRouteChildren: UsernameRouteChildren = {
-  UsernameSlugRoute: UsernameSlugRoute,
-}
-
-const UsernameRouteWithChildren = UsernameRoute._addFileChildren(
-  UsernameRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  UsernameRoute: UsernameRouteWithChildren,
   AuthRoute: AuthRoute,
   BookingTokenRoute: BookingTokenRoute,
+  UsernameIndexRoute: UsernameIndexRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
