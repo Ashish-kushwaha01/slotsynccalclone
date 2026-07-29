@@ -86,9 +86,9 @@ const AuthenticatedAutomationsRoute =
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const UsernameSlugRoute = UsernameSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => UsernameRoute,
+  id: '/$username/$slug',
+  path: '/$username/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
   id: '/api/public/hooks/reminders',
@@ -196,6 +196,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  UsernameSlugRoute: typeof UsernameSlugRoute
   BookingTokenRoute: typeof BookingTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
@@ -289,10 +290,10 @@ declare module '@tanstack/react-router' {
     }
     '/$username/$slug': {
       id: '/$username/$slug'
-      path: '/$slug'
+      path: '/$username/$slug'
       fullPath: '/$username/$slug'
       preLoaderRoute: typeof UsernameSlugRouteImport
-      parentRoute: typeof UsernameRoute
+      parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/reminders': {
       id: '/api/public/hooks/reminders'
@@ -331,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  UsernameSlugRoute: UsernameSlugRoute,
   BookingTokenRoute: BookingTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
@@ -338,13 +340,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
