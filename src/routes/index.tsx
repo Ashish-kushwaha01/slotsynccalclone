@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { BrandMark } from "@/components/BrandMark";
-import logoAsset from "@/assets/slotsync-logo.png.asset.json";
 import { ArrowRight, CalendarCheck, Clock, Zap, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -87,7 +86,7 @@ function Landing() {
           <div className="card-surface relative overflow-hidden p-8">
             <div className="mb-6 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <img src={logoAsset.url} alt="" className="h-10 w-10 rounded-lg" />
+                <img src="/SlotSync_Logo.png" alt="" className="h-10 w-10 rounded-lg" />
                 <div>
                   <div className="text-sm font-semibold text-foreground">30-min intro call</div>
                   <div className="text-xs text-muted-foreground">with Alex Rivera</div>
