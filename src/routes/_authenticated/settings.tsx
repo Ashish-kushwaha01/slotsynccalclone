@@ -8,6 +8,10 @@ import {
   getMyAvailability,
   replaceAvailabilityRules,
 } from "@/lib/host.functions";
+import {
+  getGoogleCalendarAuthUrl,
+  getGoogleCalendarConnection,
+} from "@/lib/calendar.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -31,7 +35,11 @@ import {
 import { cn } from "@/lib/utils";
 import { z } from "zod";
 
-const searchSchema = z.object({ tab: z.string().optional() });
+const searchSchema = z.object({
+  tab: z.string().optional(),
+  connected: z.string().optional(),
+  error: z.string().optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — SlotSync" }] }),
@@ -79,6 +87,21 @@ function SettingsPage() {
   const navigate = Route.useNavigate();
   const active = (search.tab as TabKey) || "profile";
   const setActive = (k: TabKey) => navigate({ search: { tab: k } });
+
+  useEffect(() => {
+    if (search.connected === "google") {
+      toast.success("Google Calendar connected.");
+    }
+    if (search.error) {
+      toast.error(`Calendar connection failed: ${search.error}`);
+    }
+    if (search.connected || search.error) {
+      navigate({
+        search: (prev) => ({ ...prev, connected: undefined, error: undefined }),
+        replace: true,
+      });
+    }
+  }, [navigate, search.connected, search.error]);
 
   return (
     <AppShell>
@@ -305,14 +328,24 @@ function ProfileTab() {
 function CalendarTab() {
   const [sub, setSub] = useState<"calendar" | "advanced">("calendar");
   const [pickerOpen, setPickerOpen] = useState(false);
-  const connected = false;
+  const fetchConnection = useServerFn(getGoogleCalendarConnection);
+  const getAuthUrl = useServerFn(getGoogleCalendarAuthUrl);
+  const connectionQuery = useQuery({
+    queryKey: ["google-calendar-connection"],
+    queryFn: () => fetchConnection(),
+  });
+  const connected = Boolean(connectionQuery.data);
 
-  const startConnect = (provider: "google" | "microsoft") => {
+  const startConnect = async () => {
     setPickerOpen(false);
-    const label = provider === "google" ? "Google Calendar" : "Microsoft Outlook Calendar";
-    toast.info(
-      `${label} OAuth isn't configured yet. Add the OAuth client credentials to enable one-click connect.`,
-    );
+    try {
+      const origin = window.location.origin;
+      const redirectTo = `${window.location.pathname}${window.location.search}`;
+      const result = await getAuthUrl({ data: { origin, redirectTo } });
+      window.location.href = result.url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start Google OAuth");
+    }
   };
 
   return (
@@ -352,7 +385,9 @@ function CalendarTab() {
                   <div className="flex h-10 w-10 items-center justify-center rounded bg-brand-soft text-brand">📅</div>
                   <div>
                     <div className="text-sm font-semibold text-foreground">Google Calendar</div>
-                    <div className="text-xs text-muted-foreground">you@example.com</div>
+                    <div className="text-xs text-muted-foreground">
+                      {connectionQuery.data?.email ?? "Connected"}
+                    </div>
                     <a className="text-xs text-brand hover:underline" href="#">Checking 1 calendar</a>
                   </div>
                 </div>
@@ -396,7 +431,7 @@ function CalendarTab() {
             </p>
             <div className="mt-5 space-y-2">
               <button
-                onClick={() => startConnect("google")}
+                onClick={startConnect}
                 className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
               >
                 <span className="text-2xl">📅</span>
@@ -406,7 +441,7 @@ function CalendarTab() {
                 </div>
               </button>
               <button
-                onClick={() => startConnect("microsoft")}
+                onClick={() => toast.info("Microsoft OAuth is not wired yet.")}
                 className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
               >
                 <span className="text-2xl">📧</span>
