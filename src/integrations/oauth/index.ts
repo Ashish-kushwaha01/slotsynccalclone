@@ -1,16 +1,6 @@
-import { createLovableAuth as createSlotSyncAuth } from "@lovable.dev/cloud-auth-js";
 import { supabase } from "../supabase/client";
 
-const cloudAuth = createSlotSyncAuth();
-
-type OAuthProvider = "google" | "apple" | "microsoft" | "slotsync";
-
-const providerMap: Record<OAuthProvider, "google" | "apple" | "microsoft" | "lovable"> = {
-  google: "google",
-  apple: "apple",
-  microsoft: "microsoft",
-  slotsync: "lovable",
-};
+type OAuthProvider = "google" | "apple" | "microsoft";
 
 type SignInOptions = {
   redirect_uri?: string;
@@ -23,27 +13,25 @@ export const oauth = {
       provider: OAuthProvider,
       opts?: SignInOptions,
     ) => {
-      const result = await cloudAuth.signInWithOAuth(providerMap[provider], {
-        redirect_uri: opts?.redirect_uri,
-        extraParams: {
-          ...opts?.extraParams,
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: opts?.redirect_uri,
+          skipBrowserRedirect: true,
+          queryParams: opts?.extraParams,
         },
       });
 
-      if (result.redirected) {
-        return result;
+      if (error) {
+        return { error };
       }
 
-      if (result.error) {
-        return result;
+      if (data?.url) {
+        window.location.assign(data.url);
+        return { redirected: true };
       }
 
-      try {
-        await supabase.auth.setSession(result.tokens);
-      } catch (e) {
-        return { error: e instanceof Error ? e : new Error(String(e)) };
-      }
-      return result;
+      return { error: new Error("Missing OAuth redirect URL.") };
     },
   },
 };

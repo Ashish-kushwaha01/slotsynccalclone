@@ -21,6 +21,7 @@ import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
 import { Route as ApiOauthGoogleCallbackRouteImport } from './routes/api/oauth/google/callback'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
@@ -86,6 +87,11 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
 const BookingTokenRoute = BookingTokenRouteImport.update({
   id: '/booking/$token',
   path: '/booking/$token',
@@ -104,7 +110,7 @@ const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
@@ -120,7 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username': typeof UsernameIndexRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
@@ -138,7 +146,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
   '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
@@ -147,6 +155,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
     | '/api/oauth/google/callback'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username'
     | '/api/oauth/google/callback'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/event-types'
     | '/_authenticated/settings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
     | '/api/oauth/google/callback'
@@ -207,7 +219,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
   UsernameSlugRoute: typeof UsernameSlugRoute
   BookingTokenRoute: typeof BookingTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
@@ -301,6 +313,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/booking/$token': {
       id: '/booking/$token'
       path: '/booking/$token'
@@ -348,10 +367,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
   UsernameSlugRoute: UsernameSlugRoute,
   BookingTokenRoute: BookingTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,

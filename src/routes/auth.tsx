@@ -64,8 +64,12 @@ function AuthPage() {
 
   async function handleGoogle() {
     setLoading(true);
+    const redirectTo = new URL("/auth/callback", window.location.origin);
+    if (search.redirect) {
+      redirectTo.searchParams.set("redirect", search.redirect);
+    }
     const result = await oauth.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: redirectTo.toString(),
     });
     if (result.error) {
       toast.error(result.error.message);
