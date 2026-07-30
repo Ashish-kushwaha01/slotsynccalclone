@@ -216,6 +216,21 @@ export const createBooking = createServerFn({ method: "POST" })
       },
     });
 
+    // Send confirmation email to invitee (best-effort).
+    const { sendBookingConfirmationEmail } = await import("./email.server");
+    const emailResult = await sendBookingConfirmationEmail({
+      toEmail: data.inviteeEmail,
+      toName: data.inviteeName,
+      hostName: hostProfile?.display_name ?? "Host",
+      eventTitle: et.title,
+      startAtIso: booking.start_at,
+      endAtIso: booking.end_at,
+      timeZone: data.inviteeTimezone || hostTimezone,
+    });
+    if (!emailResult.ok) {
+      console.warn("Booking confirmation email failed", emailResult.error);
+    }
+
     try {
       const google = await getGoogleCalendarAccessToken({
         supabaseAdmin,
