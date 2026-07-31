@@ -158,6 +158,9 @@ export const createBooking = createServerFn({ method: "POST" })
       .eq("id", et.user_id)
       .maybeSingle();
     const hostTimezone = hostProfile?.timezone ?? "UTC";
+    const locationLabel = et.location ?? "No location";
+    const isGoogleMeet = /google/i.test(locationLabel) && /meet/i.test(locationLabel);
+    const linkFromLocation = /^https?:\/\//i.test(locationLabel) ? locationLabel : undefined;
 
     // Conflict check
     const { data: conflicts } = await supabaseAdmin
@@ -182,6 +185,14 @@ export const createBooking = createServerFn({ method: "POST" })
       throw new Error("That time is busy on the host's calendar. Please pick another slot.");
     }
 
+    const googleAccess = await getGoogleCalendarAccessToken({
+      supabaseAdmin,
+      userId: et.user_id,
+    });
+    if (isGoogleMeet && !googleAccess) {
+      throw new Error("Host has not connected Google Calendar to generate a Meet link.");
+    }
+
     const { data: booking, error } = await supabaseAdmin
       .from("bookings")
       .insert({
@@ -191,6 +202,7 @@ export const createBooking = createServerFn({ method: "POST" })
         invitee_email: data.inviteeEmail,
         invitee_notes: data.inviteeNotes ?? null,
         invitee_timezone: data.inviteeTimezone,
+        meeting_url: linkFromLocation ?? null,
         start_at: startAt.toISOString(),
         end_at: endAt.toISOString(),
       })
@@ -216,27 +228,10 @@ export const createBooking = createServerFn({ method: "POST" })
       },
     });
 
-    // Send confirmation email to invitee (best-effort).
-    const { sendBookingConfirmationEmail } = await import("./email.server");
-    const emailResult = await sendBookingConfirmationEmail({
-      toEmail: data.inviteeEmail,
-      toName: data.inviteeName,
-      hostName: hostProfile?.display_name ?? "Host",
-      eventTitle: et.title,
-      startAtIso: booking.start_at,
-      endAtIso: booking.end_at,
-      timeZone: data.inviteeTimezone || hostTimezone,
-    });
-    if (!emailResult.ok) {
-      console.warn("Booking confirmation email failed", emailResult.error);
-    }
+    let meetingUrl: string | undefined;
 
     try {
-      const google = await getGoogleCalendarAccessToken({
-        supabaseAdmin,
-        userId: et.user_id,
-      });
-      if (google) {
+      if (googleAccess) {
         const description = [
           `Invitee: ${data.inviteeName} <${data.inviteeEmail}>`,
           data.inviteeNotes ? `Notes: ${data.inviteeNotes}` : null,
@@ -244,18 +239,81 @@ export const createBooking = createServerFn({ method: "POST" })
           .filter(Boolean)
           .join("\n");
 
-        await createGoogleCalendarEvent({
-          accessToken: google.accessToken,
-          calendarId: google.calendarId,
+        const eventResult = await createGoogleCalendarEvent({
+          accessToken: googleAccess.accessToken,
+          calendarId: googleAccess.calendarId,
           summary: et.title,
           description,
           startIso: startAt.toISOString(),
           endIso: endAt.toISOString(),
           timeZone: hostTimezone,
+          createMeet: isGoogleMeet,
         });
+        meetingUrl = eventResult.meetingUrl;
+        const meetingToStore = meetingUrl ?? linkFromLocation;
+        if (meetingToStore) {
+          const { error: updateErr } = await supabaseAdmin
+            .from("bookings")
+            .update({ meeting_url: meetingToStore })
+            .eq("id", booking.id);
+          if (updateErr) {
+            console.warn("Booking meeting_url update failed", updateErr);
+          }
+        }
       }
     } catch (err) {
       console.warn("Google Calendar event create failed", err);
+    }
+    const sharedMeetingUrl = meetingUrl ?? linkFromLocation;
+
+    // Send confirmation email to invitee + host (best-effort).
+    const { sendBookingConfirmationEmail, sendHostBookingNotificationEmail } = await import(
+      "./email.server"
+    );
+    const inviteeEmailResult = await sendBookingConfirmationEmail({
+      toEmail: data.inviteeEmail,
+      toName: data.inviteeName,
+      hostName: hostProfile?.display_name ?? "Host",
+      inviteeName: data.inviteeName,
+      inviteeEmail: data.inviteeEmail,
+      inviteeNotes: data.inviteeNotes,
+      eventTitle: et.title,
+      startAtIso: booking.start_at,
+      endAtIso: booking.end_at,
+      timeZone: data.inviteeTimezone || hostTimezone,
+      locationLabel,
+      meetingUrl: sharedMeetingUrl,
+    });
+    if (!inviteeEmailResult.ok) {
+      console.warn("Invitee confirmation email failed", inviteeEmailResult.error);
+    }
+
+    let hostEmail: string | null = null;
+    try {
+      const { data: hostUser } = await supabaseAdmin.auth.admin.getUserById(et.user_id);
+      hostEmail = hostUser?.user?.email ?? null;
+    } catch (err) {
+      console.warn("Host email lookup failed", err);
+    }
+
+    if (hostEmail) {
+      const hostEmailResult = await sendHostBookingNotificationEmail({
+        toEmail: hostEmail,
+        toName: hostProfile?.display_name ?? "Host",
+        hostName: hostProfile?.display_name ?? "Host",
+        inviteeName: data.inviteeName,
+        inviteeEmail: data.inviteeEmail,
+        inviteeNotes: data.inviteeNotes,
+        eventTitle: et.title,
+        startAtIso: booking.start_at,
+        endAtIso: booking.end_at,
+        timeZone: hostTimezone,
+        locationLabel,
+        meetingUrl: sharedMeetingUrl,
+      });
+      if (!hostEmailResult.ok) {
+        console.warn("Host booking email failed", hostEmailResult.error);
+      }
     }
 
     return { bookingId: booking.id, cancelToken: booking.cancel_token };

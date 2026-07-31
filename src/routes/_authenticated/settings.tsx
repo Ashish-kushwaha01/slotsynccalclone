@@ -11,6 +11,7 @@ import {
 import {
   getGoogleCalendarAuthUrl,
   getGoogleCalendarConnection,
+  deleteGoogleCalendarConnection,
 } from "@/lib/calendar.functions";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -330,11 +331,20 @@ function CalendarTab() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const fetchConnection = useServerFn(getGoogleCalendarConnection);
   const getAuthUrl = useServerFn(getGoogleCalendarAuthUrl);
+  const deleteConnection = useServerFn(deleteGoogleCalendarConnection);
   const connectionQuery = useQuery({
     queryKey: ["google-calendar-connection"],
     queryFn: () => fetchConnection(),
   });
   const connected = Boolean(connectionQuery.data);
+  const deleteMut = useMutation({
+    mutationFn: () => deleteConnection(),
+    onSuccess: () => {
+      toast.success("Calendar disconnected");
+      connectionQuery.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const startConnect = async () => {
     setPickerOpen(false);
@@ -391,7 +401,15 @@ function CalendarTab() {
                     <a className="text-xs text-brand hover:underline" href="#">Checking 1 calendar</a>
                   </div>
                 </div>
-                <button className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary"><Trash2 className="h-4 w-4" /></button>
+                <button
+                  onClick={() => {
+                    if (deleteMut.isPending) return;
+                    if (confirm("Disconnect this calendar?")) deleteMut.mutate();
+                  }}
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ) : (
               <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">

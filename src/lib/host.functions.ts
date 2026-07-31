@@ -153,10 +153,44 @@ export const listMyBookings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("bookings")
-      .select("*, event_types(title, slug, color)")
+      .select("*, meeting_url, event_types(title, slug, color, location)")
       .eq("host_user_id", context.userId)
       .order("start_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+export const cancelMyBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({ bookingId: z.string().uuid(), reason: z.string().max(500).optional() })
+      .parse(raw),
+  )
+  .handler(async ({ context, data }) => {
+    const { data: booking, error } = await context.supabase
+      .from("bookings")
+      .update({ status: "cancelled", cancel_reason: data.reason ?? null })
+      .eq("id", data.bookingId)
+      .eq("host_user_id", context.userId)
+      .eq("status", "confirmed")
+      .select("id, host_user_id, invitee_email, start_at")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!booking) throw new Error("Booking not found or already cancelled");
+
+    const { logAndDispatch } = await import("./webhook.server");
+    await logAndDispatch({
+      event: "booking.cancelled",
+      bookingId: booking.id,
+      data: {
+        hostUserId: booking.host_user_id,
+        inviteeEmail: booking.invitee_email,
+        startAt: booking.start_at,
+        reason: data.reason,
+      },
+    });
+
+    return { ok: true };
   });

@@ -111,7 +111,7 @@ export function AppSidebar({
         {nav.map((item) => {
           const active = pathname.startsWith(item.to);
           const Icon = item.icon;
-          const isStub = item.to !== "/dashboard";
+          const isStub = item.to === "/contacts" || item.to === "/automations";
           return (
             <Link
               key={item.to}

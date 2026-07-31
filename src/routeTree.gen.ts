@@ -12,11 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as UsernameIndexRouteImport } from './routes/$username.index'
 import { Route as UsernameSlugRouteImport } from './routes/$username.$slug'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
 import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticated/contacts'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
@@ -38,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsernameIndexRoute = UsernameIndexRouteImport.update({
@@ -62,11 +67,6 @@ const AuthenticatedAvailabilityRoute =
     path: '/availability',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedContactsRoute = AuthenticatedContactsRouteImport.update({
   id: '/contacts',
   path: '/contacts',
@@ -111,10 +111,10 @@ const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/contacts': typeof AuthenticatedContactsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
@@ -128,10 +128,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/contacts': typeof AuthenticatedContactsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
@@ -147,10 +147,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
-  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/contacts': typeof AuthenticatedContactsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
@@ -166,10 +166,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
-    | '/calendar'
     | '/contacts'
     | '/dashboard'
     | '/event-types'
@@ -183,10 +183,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
-    | '/calendar'
     | '/contacts'
     | '/dashboard'
     | '/event-types'
@@ -201,10 +201,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/_authenticated/automations'
     | '/_authenticated/availability'
-    | '/_authenticated/calendar'
     | '/_authenticated/contacts'
     | '/_authenticated/dashboard'
     | '/_authenticated/event-types'
@@ -220,6 +220,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  CalendarRoute: typeof CalendarRoute
   UsernameSlugRoute: typeof UsernameSlugRoute
   BookingTokenRoute: typeof BookingTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
@@ -250,6 +251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$username/': {
       id: '/$username/'
       path: '/$username'
@@ -276,13 +284,6 @@ declare module '@tanstack/react-router' {
       path: '/availability'
       fullPath: '/availability'
       preLoaderRoute: typeof AuthenticatedAvailabilityRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contacts': {
@@ -347,7 +348,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedAvailabilityRoute: typeof AuthenticatedAvailabilityRoute
-  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedContactsRoute: typeof AuthenticatedContactsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEventTypesRoute: typeof AuthenticatedEventTypesRoute
@@ -357,7 +357,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedAvailabilityRoute: AuthenticatedAvailabilityRoute,
-  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedContactsRoute: AuthenticatedContactsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEventTypesRoute: AuthenticatedEventTypesRoute,
@@ -381,6 +380,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  CalendarRoute: CalendarRoute,
   UsernameSlugRoute: UsernameSlugRoute,
   BookingTokenRoute: BookingTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,

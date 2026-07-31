@@ -180,15 +180,25 @@ export async function createGoogleCalendarEvent(params: {
   startIso: string;
   endIso: string;
   timeZone: string;
-}): Promise<void> {
+  createMeet?: boolean;
+}): Promise<{ meetingUrl?: string }> {
   const calendarId = encodeURIComponent(params.calendarId ?? "primary");
-  const url = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
-  const body = {
+  const urlBase = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`;
+  const url = params.createMeet ? `${urlBase}?conferenceDataVersion=1` : urlBase;
+  const body: Record<string, unknown> = {
     summary: params.summary,
     description: params.description,
     start: { dateTime: params.startIso, timeZone: params.timeZone },
     end: { dateTime: params.endIso, timeZone: params.timeZone },
   };
+  if (params.createMeet) {
+    body.conferenceData = {
+      createRequest: {
+        requestId: `meet-${Date.now()}`,
+        conferenceSolutionKey: { type: "hangoutsMeet" },
+      },
+    };
+  }
 
   const response = await fetch(url, {
     method: "POST",
@@ -203,6 +213,14 @@ export async function createGoogleCalendarEvent(params: {
     const errorText = await response.text();
     throw new Error(`Google calendar event create failed: ${errorText}`);
   }
+  const payload = (await response.json()) as {
+    hangoutLink?: string;
+    conferenceData?: { entryPoints?: Array<{ entryPointType?: string; uri?: string }> };
+  };
+  const entryUrl = payload.conferenceData?.entryPoints?.find(
+    (entry) => entry.entryPointType === "video",
+  )?.uri;
+  return { meetingUrl: payload.hangoutLink ?? entryUrl };
 }
 
 function getEncryptionKey(): Buffer {

@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { BrandMark } from "@/components/BrandMark";
 import { ArrowRight, CalendarCheck, Clock, Zap, ShieldCheck } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,6 +24,28 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const navigate = useNavigate();
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      if (data.session) {
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+      setCheckingSession(false);
+    });
+    return () => {
+      active = false;
+    };
+  }, [navigate]);
+
+  if (checkingSession) {
+    return <div className="min-h-screen bg-background" />;
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-surface/80 backdrop-blur">

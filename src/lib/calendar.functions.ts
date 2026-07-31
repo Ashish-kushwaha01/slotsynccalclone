@@ -50,3 +50,14 @@ export const getGoogleCalendarAuthUrl = createServerFn({ method: "POST" })
       }),
     };
   });
+
+export const deleteGoogleCalendarConnection = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { error } = await context.supabase
+      .from("google_calendar_connections")
+      .delete()
+      .eq("user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
