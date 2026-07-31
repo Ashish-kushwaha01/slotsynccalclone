@@ -12,7 +12,7 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportRuntimeError } from "../lib/runtime-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { ensureProfileForUser } from "@/lib/profile-client";
 
 function NotFoundComponent() {
@@ -147,7 +147,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" closeButton />
     </QueryClientProvider>
   );
 }
