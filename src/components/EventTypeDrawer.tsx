@@ -51,15 +51,24 @@ export function EventTypeDrawer({
 }) {
   const [draft, setDraft] = useState<EventTypeDraft | null>(initial);
   const [showMore, setShowMore] = useState(false);
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
   useEffect(() => {
     setDraft(initial);
     setShowMore(false);
+    setSlugManuallyEdited(false);
   }, [initial, open]);
 
   if (!open || !draft) return null;
 
   const update = (patch: Partial<EventTypeDraft>) => setDraft({ ...draft, ...patch });
+
+  const toSlug = (value: string) =>
+    value
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
   return (
     <div className="fixed inset-0 z-40 flex">
@@ -70,12 +79,9 @@ export function EventTypeDrawer({
             <div className="text-xs font-medium text-muted-foreground">Event type</div>
             <div className="mt-1 flex items-center gap-2">
               <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: draft.color }} />
-              <input
-                value={draft.title}
-                onChange={(e) => update({ title: e.target.value })}
-                className="min-w-0 flex-1 border-none bg-transparent text-xl font-semibold text-foreground outline-none"
-                placeholder="Event name"
-              />
+              <div className="min-w-0 flex-1 text-xl font-semibold text-foreground">
+                {draft.title || "Untitled event"}
+              </div>
             </div>
             <div className="mt-0.5 text-xs text-muted-foreground">One-on-One</div>
           </div>
@@ -85,6 +91,24 @@ export function EventTypeDrawer({
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          <div className="border-b border-border px-5 py-4">
+            <label className="mb-2 block text-xs font-medium text-muted-foreground">Event name</label>
+            <input
+              type="text"
+              value={draft.title}
+              onChange={(e) => {
+                const nextTitle = e.target.value;
+                if (!slugManuallyEdited) {
+                  const nextSlug = toSlug(nextTitle);
+                  update({ title: nextTitle, slug: nextSlug || draft.slug });
+                  return;
+                }
+                update({ title: nextTitle });
+              }}
+              className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-ring/30"
+              placeholder="Event name"
+            />
+          </div>
           <Section title="Duration" icon={<Clock className="h-4 w-4" />} value={`${draft.duration_min} min`} defaultOpen>
             <div className="flex flex-wrap gap-2">
               {[15, 30, 45, 60, 90].map((n) => (
@@ -182,7 +206,10 @@ export function EventTypeDrawer({
                   <span className="bg-muted px-2.5 py-2 text-xs text-muted-foreground">slotsync.app/…/</span>
                   <input
                     value={draft.slug}
-                    onChange={(e) => update({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") })}
+                    onChange={(e) => {
+                      setSlugManuallyEdited(true);
+                      update({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") });
+                    }}
                     className="flex-1 bg-surface px-2 py-2 text-sm outline-none"
                   />
                 </div>

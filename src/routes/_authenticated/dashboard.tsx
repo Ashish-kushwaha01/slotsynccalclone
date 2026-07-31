@@ -10,7 +10,7 @@ import {
 } from "@/lib/host.functions";
 import { EventTypeDrawer, type EventTypeDraft } from "@/components/EventTypeDrawer";
 import { CreateMenu } from "@/components/CreateMenu";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   ExternalLink,
@@ -60,6 +60,20 @@ function SchedulingPage() {
   const [drawer, setDrawer] = useState<EventTypeDraft | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (!menuFor) return;
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-event-menu]")) return;
+      setMenuFor(null);
+    };
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuFor]);
+
   const q = useQuery({ queryKey: ["my-event-types"], queryFn: () => listFn() });
   const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => profFn() });
 
@@ -89,6 +103,7 @@ function SchedulingPage() {
 
   const username = profileQ.data?.username ?? "";
   const displayName = profileQ.data?.display_name ?? "You";
+  const avatarUrl = profileQ.data?.avatar_url ?? null;
   const publicUrl = (slug: string) =>
     typeof window !== "undefined" ? `${window.location.origin}/${username}/${slug}` : "";
 
@@ -152,12 +167,20 @@ function SchedulingPage() {
         {tab !== "Event types" ? (
           <EmptyTab label={tab} />
         ) : (
-          <div className="card-surface overflow-hidden">
+          <div className="card-surface overflow-visible">
             {/* Host row */}
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">
-                  {displayName.charAt(0).toUpperCase()}
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-brand-soft text-sm font-semibold text-brand">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={`${displayName} avatar`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    displayName.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="text-sm font-semibold text-foreground">{displayName}</div>
               </div>
@@ -201,7 +224,7 @@ function SchedulingPage() {
                     />
                     <button
                       onClick={() => setDrawer({ ...(et as EventTypeDraft) })}
-                      className="min-w-0 flex-1 text-left"
+                      className="min-w-0 flex-1 cursor-pointer text-left"
                     >
                       <div className="text-sm font-semibold text-foreground">{et.title}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
@@ -229,7 +252,7 @@ function SchedulingPage() {
                       >
                         <ExternalLink className="h-4 w-4" />
                       </a>
-                      <div className="relative">
+                      <div className="relative" data-event-menu>
                         <button
                           onClick={() => setMenuFor(menuFor === et.id ? null : et.id)}
                           className={cn(
@@ -242,7 +265,7 @@ function SchedulingPage() {
                           <MoreVertical className="h-4 w-4" />
                         </button>
                         {menuFor === et.id && (
-                          <div className="absolute right-0 top-full z-20 mt-1 w-52 overflow-hidden rounded-md border border-border bg-popover shadow-lift">
+                          <div className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-border bg-popover shadow-lift">
                             <MenuItem icon={<Eye className="h-4 w-4" />} onClick={() => window.open(`/${username}/${et.slug}`, "_blank")}>View booking page</MenuItem>
                             <MenuItem icon={<Edit className="h-4 w-4" />} onClick={() => { setMenuFor(null); setDrawer({ ...(et as EventTypeDraft) }); }}>Edit</MenuItem>
                             <MenuItem icon={<Copy className="h-4 w-4" />} onClick={() => {

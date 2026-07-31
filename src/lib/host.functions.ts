@@ -20,6 +20,7 @@ const profileUpdateSchema = z.object({
   display_name: z.string().min(1).max(80),
   bio: z.string().max(500).nullable().optional(),
   timezone: z.string().min(1).max(64),
+  avatar_url: z.string().max(500).nullable().optional(),
 });
 
 export const updateMyProfile = createServerFn({ method: "POST" })

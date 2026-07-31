@@ -44,8 +44,16 @@ function HostPage() {
   return (
     <PublicShell>
       <div className="mb-8 flex items-center gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-2xl font-semibold text-primary-foreground">
-          {profile.display_name.charAt(0).toUpperCase()}
+        <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-primary text-2xl font-semibold text-primary-foreground">
+          {profile.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={`${profile.display_name} avatar`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            profile.display_name.charAt(0).toUpperCase()
+          )}
         </div>
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{profile.display_name}</h1>
