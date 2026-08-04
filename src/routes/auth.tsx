@@ -59,7 +59,15 @@ function AuthPage() {
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          const msg = error.message.toLowerCase();
+          if (msg.includes("confirm") && msg.includes("email")) {
+            setPendingEmail(email);
+            toast.info("Please confirm your email before signing in. Use resend below if needed.");
+            return;
+          }
+          throw error;
+        }
         setPendingEmail(null);
         navigate({ to: search.redirect ?? "/dashboard" });
       }
