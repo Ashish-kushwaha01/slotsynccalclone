@@ -74,6 +74,7 @@ function BookingFlow() {
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
   const [confirmedSlot, setConfirmedSlot] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", notes: "" });
+  const [view, setView] = useState<"intro" | "booking">("intro");
 
   const eventType = eventQ.data?.eventType;
   const inviteeTz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
@@ -167,12 +168,15 @@ function BookingFlow() {
     <Shell>
       <div className="mx-auto max-w-5xl">
         <div className="relative overflow-hidden rounded-lg border border-border bg-surface shadow-soft">
-          {/* SlotSync corner ribbon */}
-          <div className="pointer-events-none absolute right-0 top-0 z-10 hidden sm:block">
-            <div className="w-32 -translate-y-3 translate-x-8 rotate-45 bg-primary py-1 text-center text-[10px] font-semibold uppercase tracking-wider text-primary-foreground">
-              Powered by SlotSync
+          {/* Britha AI top-right badge */}
+          {view === "booking" && (
+            <div className="pointer-events-none absolute right-4 top-4 z-10 hidden sm:block">
+              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-slate-950/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-sky-200 shadow-lift">
+                <img src="/BrithaAI%20Logo.png" alt="" className="h-3 w-3" />
+                Britha AI
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="grid gap-0 md:grid-cols-[320px_1fr]">
             {/* Left column — host / event info */}
@@ -225,7 +229,48 @@ function BookingFlow() {
 
             {/* Right column */}
             <div className="p-8">
-              {step === "pick" ? (
+              {view === "intro" ? (
+                <div className="mx-auto max-w-xl">
+                  <div className="britha-preview-card rounded-2xl border border-white/10 bg-slate-950/70 p-6 text-slate-100 shadow-lift">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-slate-900/70 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-sky-200">
+                      <img src="/BrithaAI%20Logo.png" alt="" className="h-3 w-3" />
+                      Powered by Britha AI
+                    </div>
+                    <div className="flex items-start gap-4">
+                      <img src="/BrithaAI%20Logo.png" alt="Britha AI" className="h-10 w-10" />
+                      <div className="flex-1">
+                        <div className="text-xs uppercase tracking-wider text-sky-200/80">Britha AI meeting</div>
+                        <h2 className="mt-1 text-2xl font-semibold text-white">{eventType.title}</h2>
+                        <div className="mt-2 text-sm text-slate-200">
+                          Hosted by <span className="font-medium text-white">{eventQ.data.profile.display_name}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-5 grid gap-3 text-sm text-slate-200 sm:grid-cols-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-sky-200" /> {eventType.duration_min} min
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Globe className="h-4 w-4 text-sky-200" /> {hostTimezone}
+                      </div>
+                      {eventType.location && (
+                        <div className="flex items-center gap-2 sm:col-span-2">
+                          <Video className="h-4 w-4 text-sky-200" /> Web conferencing details upon confirmation
+                        </div>
+                      )}
+                    </div>
+                    {eventType.description && (
+                      <p className="mt-4 text-sm text-slate-300">{eventType.description}</p>
+                    )}
+                    <button
+                      onClick={() => setView("booking")}
+                      className="mt-6 inline-flex items-center justify-center rounded-full bg-sky-400 px-5 py-2.5 text-sm font-semibold text-slate-950 hover:bg-sky-300"
+                    >
+                      Continue to booking
+                    </button>
+                  </div>
+                </div>
+              ) : step === "pick" ? (
                 <div className="grid gap-8 md:grid-cols-[1fr_auto]">
                   {/* Calendar */}
                   <div>
@@ -390,10 +435,18 @@ function BookingFlow() {
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-surface">
-        <div className="container-app flex h-16 items-center">
+    <div className="britha-booking min-h-screen bg-background">
+      <header className="border-b border-border bg-surface/80 backdrop-blur">
+        <div className="container-app flex h-16 items-center gap-3">
           <BrandMark />
+          <div className="ml-auto flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/70 px-3 py-1 text-xs font-semibold text-white shadow-soft">
+            <img
+              src="/BrithaAI%20Logo.png"
+              alt="Britha AI"
+              className="h-4 w-4"
+            />
+            <span>Powered by Britha AI</span>
+          </div>
         </div>
       </header>
       <main className="container-app py-10">{children}</main>

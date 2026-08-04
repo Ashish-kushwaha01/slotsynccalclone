@@ -22,6 +22,7 @@ export interface SlotComputationInput {
   date: string; // YYYY-MM-DD (in host timezone)
   hostTimezone: string;
   durationMin: number;
+  slotStepMin?: number;
   bufferBeforeMin: number;
   bufferAfterMin: number;
   minNoticeMin: number;
@@ -105,7 +106,7 @@ export function computeAvailableSlots(input: SlotComputationInput): Date[] {
 
   const slotLen = input.durationMin;
   const total = slotLen + input.bufferBeforeMin + input.bufferAfterMin;
-  const step = slotLen; // slot every duration
+  const step = input.slotStepMin ?? slotLen; // slot step in minutes
   const slots: Date[] = [];
 
   for (const [ws, we] of windows) {

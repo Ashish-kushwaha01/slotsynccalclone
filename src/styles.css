@@ -152,3 +152,28 @@
 @utility link-brand {
   @apply text-brand hover:underline;
 }
+
+.britha-booking {
+  position: relative;
+  background-image:
+    radial-gradient(1000px 700px at 15% 8%, rgba(59, 130, 246, 0.2), transparent 60%),
+    radial-gradient(900px 800px at 85% 22%, rgba(14, 165, 233, 0.18), transparent 62%),
+    radial-gradient(700px 700px at 50% 85%, rgba(99, 102, 241, 0.12), transparent 60%);
+  background-repeat: no-repeat;
+  background-position: left -240px top -220px, right -200px top -140px, center bottom -120px;
+  background-size: 1000px 700px, 900px 800px, 700px 700px;
+  background-color: #050912;
+}
+
+@media (max-width: 768px) {
+  .britha-booking {
+    background-position: left -200px top -180px, right -160px top -140px, center bottom -100px;
+    background-size: 820px 620px, 760px 700px, 520px 520px;
+  }
+}
+
+.britha-preview-card {
+  background-image:
+    radial-gradient(500px 300px at 10% 0%, rgba(56, 189, 248, 0.18), transparent 60%),
+    radial-gradient(400px 400px at 100% 0%, rgba(99, 102, 241, 0.16), transparent 60%);
+}

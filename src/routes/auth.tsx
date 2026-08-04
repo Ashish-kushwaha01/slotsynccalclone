@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { oauth } from "@/integrations/oauth";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -29,6 +29,7 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
@@ -146,15 +147,25 @@ function AuthPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm text-foreground outline-none ring-ring/40 transition focus:border-primary focus:ring-2"
-                placeholder="At least 8 characters"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-md border border-input bg-surface px-3 py-2 pr-10 text-sm text-foreground outline-none ring-ring/40 transition focus:border-primary focus:ring-2"
+                  placeholder="At least 8 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 inline-flex items-center justify-center text-muted-foreground transition hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <button
               type="submit"
