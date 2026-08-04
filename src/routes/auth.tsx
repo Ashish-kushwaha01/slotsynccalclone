@@ -30,6 +30,7 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -42,21 +43,41 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth?mode=signin` },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email if confirmation is required.");
-        navigate({ to: "/dashboard" });
+        if (data.session) {
+          setPendingEmail(null);
+          navigate({ to: "/dashboard" });
+        } else {
+          setPendingEmail(email);
+          toast.success("Account created! Check your email to confirm before signing in.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        setPendingEmail(null);
         navigate({ to: search.redirect ?? "/dashboard" });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResend() {
+    if (!pendingEmail) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email: pendingEmail });
+      if (error) throw error;
+      toast.success("Confirmation email resent. Please check your inbox/spam.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to resend confirmation email");
     } finally {
       setLoading(false);
     }
@@ -145,10 +166,27 @@ function AuthPage() {
             </button>
           </form>
 
+          {mode === "signup" && pendingEmail && (
+            <div className="mt-4 rounded-md border border-border bg-surface px-3 py-2 text-xs text-muted-foreground">
+              <div>Waiting for confirmation: {pendingEmail}</div>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={loading}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-primary hover:underline disabled:opacity-60"
+              >
+                Resend confirmation email
+              </button>
+            </div>
+          )}
+
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "signup" ? "Already have an account?" : "New to SlotSync?"}{" "}
             <button
-              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+              onClick={() => {
+                setPendingEmail(null);
+                setMode(mode === "signup" ? "signin" : "signup");
+              }}
               className="font-semibold text-primary hover:underline"
             >
               {mode === "signup" ? "Sign in" : "Create account"}

@@ -39,6 +39,7 @@ export function EventTypeDrawer({
   onDelete,
   onPreview,
   saving,
+  googleConnected,
 }: {
   open: boolean;
   initial: EventTypeDraft | null;
@@ -48,6 +49,7 @@ export function EventTypeDrawer({
   onDelete?: () => void;
   onPreview?: () => void;
   saving: boolean;
+  googleConnected?: boolean;
 }) {
   const [draft, setDraft] = useState<EventTypeDraft | null>(initial);
   const [showMore, setShowMore] = useState(false);
@@ -60,6 +62,8 @@ export function EventTypeDrawer({
   }, [initial, open]);
 
   if (!open || !draft) return null;
+
+  const canUseGoogleMeet = googleConnected ?? true;
 
   const update = (patch: Partial<EventTypeDraft>) => setDraft({ ...draft, ...patch });
 
@@ -138,25 +142,37 @@ export function EventTypeDrawer({
 
           <Section title="Location" icon={<Video className="h-4 w-4" />} value={draft.location ?? "Select location"} defaultOpen>
             <div className="grid grid-cols-2 gap-2">
-              {LOCATIONS.map((l) => (
-                <button
-                  key={l.key}
-                  onClick={() => update({ location: l.key })}
-                  className={cn(
-                    "flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm",
-                    draft.location === l.key
-                      ? "border-brand bg-brand-soft text-brand"
-                      : "border-border hover:bg-secondary",
-                  )}
-                >
-                  <span>{l.icon}</span>
-                  <span className="truncate">{l.key}</span>
-                </button>
-              ))}
+              {LOCATIONS.map((l) => {
+                const isGoogleMeet = l.key === "Google Meet";
+                const disabled = isGoogleMeet && !canUseGoogleMeet;
+                return (
+                  <button
+                    key={l.key}
+                    onClick={() => !disabled && update({ location: l.key })}
+                    disabled={disabled}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md border px-3 py-2 text-left text-sm",
+                      draft.location === l.key
+                        ? "border-brand bg-brand-soft text-brand"
+                        : "border-border hover:bg-secondary",
+                      disabled && "cursor-not-allowed opacity-60",
+                    )}
+                    title={disabled ? "Connect Google Calendar to use Meet" : undefined}
+                  >
+                    <span>{l.icon}</span>
+                    <span className="truncate">{l.key}</span>
+                  </button>
+                );
+              })}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Conferencing details provided after booking completion.
             </p>
+            {!canUseGoogleMeet && (
+              <p className="mt-2 text-xs text-amber-500">
+                Connect Google Calendar to enable Google Meet.
+              </p>
+            )}
           </Section>
 
           <Section title="Availability" icon={<CalIcon className="h-4 w-4" />} value="Weekdays, hours vary">
@@ -265,6 +281,10 @@ export function EventTypeDrawer({
               onClick={() => {
                 if (!draft.title.trim() || !draft.slug.trim()) {
                   toast.error("Title and URL slug are required");
+                  return;
+                }
+                if (!canUseGoogleMeet && draft.location === "Google Meet") {
+                  toast.error("Connect Google Calendar to use Google Meet.");
                   return;
                 }
                 onSave(draft);

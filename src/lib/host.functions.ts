@@ -128,6 +128,7 @@ const availabilityInputSchema = z.object({
       end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
     }),
   ),
+  timezone: z.string().min(1).max(64).optional(),
 });
 
 export const replaceAvailabilityRules = createServerFn({ method: "POST" })
@@ -139,6 +140,13 @@ export const replaceAvailabilityRules = createServerFn({ method: "POST" })
       .delete()
       .eq("user_id", context.userId);
     if (delErr) throw new Error(delErr.message);
+    if (data.timezone) {
+      const { error: tzErr } = await context.supabase
+        .from("profiles")
+        .update({ timezone: data.timezone })
+        .eq("id", context.userId);
+      if (tzErr) throw new Error(tzErr.message);
+    }
     if (data.rules.length > 0) {
       const { error } = await context.supabase
         .from("availability_rules")

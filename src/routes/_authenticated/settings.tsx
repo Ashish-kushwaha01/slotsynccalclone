@@ -331,6 +331,14 @@ function ProfileTab() {
               />
             </div>
           </Field>
+          <Field label="Email">
+            <input
+              value={q.data?.email ?? ""}
+              readOnly
+              className="input bg-muted text-muted-foreground"
+              placeholder="Email will appear after confirmation"
+            />
+          </Field>
           <Field label="Name">
             <input
               required

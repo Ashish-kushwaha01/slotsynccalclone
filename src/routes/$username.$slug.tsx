@@ -7,7 +7,7 @@ import {
   getPublicEventType,
 } from "@/lib/booking.functions";
 import { BrandMark } from "@/components/BrandMark";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Clock, Video, Globe, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -22,8 +22,35 @@ export const Route = createFileRoute("/$username/$slug")({
   component: BookingFlow,
 });
 
-function ymd(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function formatYmdInTimeZone(date: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
+function addDaysYmd(ymd: string, days: number): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getUTCDate()).padStart(2, "0");
+  return `${dt.getUTCFullYear()}-${mm}-${dd}`;
+}
+
+function dayOfWeekInZone(dateYmd: string, timeZone: string): number {
+  const [y, mo, d] = dateYmd.split("-").map(Number);
+  const utcNoon = new Date(Date.UTC(y, mo - 1, d, 12));
+  const wk = new Intl.DateTimeFormat("en-US", { timeZone, weekday: "short" }).format(utcNoon);
+  return { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 }[wk] ?? 0;
+}
+
+function dateFromYmd(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12));
 }
 
 function BookingFlow() {
@@ -38,10 +65,11 @@ function BookingFlow() {
     queryFn: () => fetchEvent({ data: { username, slug } }),
   });
 
-  const [monthStart, setMonthStart] = useState(() => {
+  const [monthCursor, setMonthCursor] = useState(() => {
     const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), 1);
+    return { year: now.getFullYear(), month: now.getMonth() };
   });
+  const [monthInitialized, setMonthInitialized] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
   const [confirmedSlot, setConfirmedSlot] = useState<string | null>(null);
@@ -49,11 +77,24 @@ function BookingFlow() {
 
   const eventType = eventQ.data?.eventType;
   const inviteeTz = typeof Intl !== "undefined" ? Intl.DateTimeFormat().resolvedOptions().timeZone : "UTC";
+  const hostTimezone = eventQ.data?.profile?.timezone ?? "UTC";
+
+  useEffect(() => {
+    if (!eventQ.data || monthInitialized) return;
+    const todayYmd = formatYmdInTimeZone(new Date(), hostTimezone);
+    const [y, m] = todayYmd.split("-").map(Number);
+    setMonthCursor({ year: y, month: m - 1 });
+    setMonthInitialized(true);
+  }, [eventQ.data, hostTimezone, monthInitialized]);
 
   const slotsQ = useQuery({
     queryKey: ["slots", eventType?.id, selectedDate],
     queryFn: () => fetchSlots({ data: { eventTypeId: eventType!.id, date: selectedDate! } }),
     enabled: !!eventType && !!selectedDate,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    refetchInterval: 30_000,
   });
 
   const bookMut = useMutation({
@@ -76,19 +117,32 @@ function BookingFlow() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  useEffect(() => {
+    if (!slotsQ.data?.slots) return;
+    if (pendingSlot && !slotsQ.data.slots.includes(pendingSlot)) {
+      setPendingSlot(null);
+    }
+    if (confirmedSlot && !slotsQ.data.slots.includes(confirmedSlot)) {
+      setConfirmedSlot(null);
+    }
+  }, [slotsQ.data?.slots, pendingSlot, confirmedSlot]);
+
   const calendarDays = useMemo(() => {
-    const first = monthStart;
-    const startWeekday = (first.getDay() + 6) % 7; // Monday-start
-    const days: { date: Date; ymd: string; inMonth: boolean }[] = [];
-    const start = new Date(first);
-    start.setDate(first.getDate() - startWeekday);
+    const mm = String(monthCursor.month + 1).padStart(2, "0");
+    const firstYmd = `${monthCursor.year}-${mm}-01`;
+    const startWeekday = (dayOfWeekInZone(firstYmd, hostTimezone) + 6) % 7; // Monday-start
+    const startYmd = addDaysYmd(firstYmd, -startWeekday);
+    const days: { ymd: string; inMonth: boolean; day: number }[] = [];
     for (let i = 0; i < 42; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      days.push({ date: d, ymd: ymd(d), inMonth: d.getMonth() === first.getMonth() });
+      const ymd = addDaysYmd(startYmd, i);
+      days.push({
+        ymd,
+        inMonth: ymd.startsWith(`${monthCursor.year}-${mm}`),
+        day: Number(ymd.split("-")[2]),
+      });
     }
     return days;
-  }, [monthStart]);
+  }, [monthCursor, hostTimezone]);
 
   if (eventQ.isLoading) {
     return <Shell><div className="h-96 animate-pulse rounded-lg bg-muted" /></Shell>;
@@ -106,8 +160,7 @@ function BookingFlow() {
     );
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const hostTodayYmd = formatYmdInTimeZone(new Date(), hostTimezone);
   const step: "pick" | "details" = confirmedSlot ? "details" : "pick";
 
   return (
@@ -148,18 +201,19 @@ function BookingFlow() {
                   <>
                     <div className="flex items-center gap-2 pt-1">
                       📅 <span>
-                        {new Date(confirmedSlot).toLocaleString(undefined, {
+                        {new Intl.DateTimeFormat(undefined, {
+                          timeZone: hostTimezone,
                           weekday: "long",
                           month: "long",
                           day: "numeric",
                           year: "numeric",
                           hour: "numeric",
                           minute: "2-digit",
-                        })}
+                        }).format(new Date(confirmedSlot))}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Globe className="h-4 w-4 text-muted-foreground" /> {inviteeTz}
+                      <Globe className="h-4 w-4 text-muted-foreground" /> {hostTimezone}
                     </div>
                   </>
                 )}
@@ -176,13 +230,33 @@ function BookingFlow() {
                   {/* Calendar */}
                   <div>
                     <div className="mb-4 flex items-center justify-center gap-4">
-                      <button onClick={() => setMonthStart(new Date(monthStart.getFullYear(), monthStart.getMonth() - 1, 1))} className="rounded p-1 hover:bg-secondary">
+                      <button
+                        onClick={() =>
+                          setMonthCursor(({ year, month }) => ({
+                            year: month === 0 ? year - 1 : year,
+                            month: month === 0 ? 11 : month - 1,
+                          }))
+                        }
+                        className="rounded p-1 hover:bg-secondary"
+                      >
                         <ChevronLeft className="h-5 w-5 text-brand" />
                       </button>
                       <div className="text-lg font-semibold text-foreground">
-                        {monthStart.toLocaleString(undefined, { month: "long", year: "numeric" })}
+                        {new Intl.DateTimeFormat(undefined, {
+                          timeZone: hostTimezone,
+                          month: "long",
+                          year: "numeric",
+                        }).format(dateFromYmd(`${monthCursor.year}-${String(monthCursor.month + 1).padStart(2, "0")}-01`))}
                       </div>
-                      <button onClick={() => setMonthStart(new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1))} className="rounded p-1 hover:bg-secondary">
+                      <button
+                        onClick={() =>
+                          setMonthCursor(({ year, month }) => ({
+                            year: month === 11 ? year + 1 : year,
+                            month: month === 11 ? 0 : month + 1,
+                          }))
+                        }
+                        className="rounded p-1 hover:bg-secondary"
+                      >
                         <ChevronRight className="h-5 w-5 text-brand" />
                       </button>
                     </div>
@@ -192,9 +266,9 @@ function BookingFlow() {
                     </div>
                     <div className="mt-1 grid grid-cols-7 gap-1">
                       {calendarDays.map((d) => {
-                        const disabled = !d.inMonth || d.date < today;
+                        const disabled = !d.inMonth || d.ymd < hostTodayYmd;
                         const isSelected = selectedDate === d.ymd;
-                        const isToday = ymd(new Date()) === d.ymd;
+                        const isToday = hostTodayYmd === d.ymd;
                         return (
                           <button
                             key={d.ymd}
@@ -208,15 +282,15 @@ function BookingFlow() {
                               isToday && !isSelected && "ring-1 ring-brand/50",
                             )}
                           >
-                            {d.date.getDate()}
+                            {d.day}
                           </button>
                         );
                       })}
                     </div>
                     <div className="mt-6">
-                      <div className="mb-1 text-sm font-semibold text-foreground">Time zone</div>
+                      <div className="mb-1 text-sm font-semibold text-foreground">Host time zone</div>
                       <div className="inline-flex items-center gap-1.5 text-sm text-foreground">
-                        <Globe className="h-4 w-4" /> {inviteeTz}
+                        <Globe className="h-4 w-4" /> {hostTimezone}
                       </div>
                     </div>
                   </div>
@@ -225,9 +299,12 @@ function BookingFlow() {
                   {selectedDate && (
                     <div className="w-56">
                       <div className="mb-3 text-sm font-semibold text-foreground">
-                        {new Date(selectedDate + "T12:00:00").toLocaleDateString(undefined, {
-                          weekday: "long", month: "long", day: "numeric",
-                        })}
+                        {new Intl.DateTimeFormat(undefined, {
+                          timeZone: hostTimezone,
+                          weekday: "long",
+                          month: "long",
+                          day: "numeric",
+                        }).format(dateFromYmd(selectedDate))}
                       </div>
                       {slotsQ.isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
                       {slotsQ.data?.slots.length === 0 && (
@@ -247,7 +324,11 @@ function BookingFlow() {
                                     : "border-brand text-brand hover:bg-brand-soft",
                                 )}
                               >
-                                {new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "")}
+                                {new Intl.DateTimeFormat(undefined, {
+                                  timeZone: hostTimezone,
+                                  hour: "numeric",
+                                  minute: "2-digit",
+                                }).format(new Date(iso)).toLowerCase().replace(" ", "")}
                               </button>
                               {isPending && (
                                 <button

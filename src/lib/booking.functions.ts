@@ -8,6 +8,32 @@ import {
   getAccessTokenFromRefresh,
 } from "./google-calendar.server";
 
+function formatZonedDateTime(iso: string, timeZone: string): string {
+  const dt = new Date(iso);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(dt);
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day} ${lookup.hour}:${lookup.minute}`;
+}
+
+function formatYmdInZone(iso: string, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(iso));
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  return `${lookup.year}-${lookup.month}-${lookup.day}`;
+}
+
 // Public server functions used by the invitee booking flow.
 // No auth middleware — anyone can call. Use supabaseAdmin to bypass RLS
 // (bookings insert has no anon policy by design).
@@ -83,6 +109,8 @@ export const getAvailableSlots = createServerFn({ method: "POST" })
       .eq("id", et.user_id)
       .maybeSingle();
     const hostTimezone = hostProfile?.timezone ?? "UTC";
+    const hostTodayYmd = formatYmdInZone(new Date().toISOString(), hostTimezone);
+    const minNoticeMin = data.date === hostTodayYmd ? 0 : et.min_notice_min;
 
     const [{ data: rules }, { data: overrides }, { data: existing }] = await Promise.all([
       supabaseAdmin.from("availability_rules").select("*").eq("user_id", et.user_id),
@@ -117,7 +145,7 @@ export const getAvailableSlots = createServerFn({ method: "POST" })
       durationMin: et.duration_min,
       bufferBeforeMin: et.buffer_before_min,
       bufferAfterMin: et.buffer_after_min,
-      minNoticeMin: et.min_notice_min,
+      minNoticeMin,
       maxAdvanceDays: et.max_advance_days,
       rules: rules ?? [],
       overrides: overrides ?? [],
@@ -161,6 +189,31 @@ export const createBooking = createServerFn({ method: "POST" })
     const locationLabel = et.location ?? "No location";
     const isGoogleMeet = /google/i.test(locationLabel) && /meet/i.test(locationLabel);
     const linkFromLocation = /^https?:\/\//i.test(locationLabel) ? locationLabel : undefined;
+
+    const [{ data: rules }, { data: overrides }] = await Promise.all([
+      supabaseAdmin.from("availability_rules").select("*").eq("user_id", et.user_id),
+      supabaseAdmin.from("date_overrides").select("*").eq("user_id", et.user_id),
+    ]);
+
+    const dateYmd = formatYmdInZone(data.startAtIso, hostTimezone);
+    const hostTodayYmd = formatYmdInZone(new Date().toISOString(), hostTimezone);
+    const minNoticeMin = dateYmd === hostTodayYmd ? 0 : et.min_notice_min;
+    const allowedSlots = computeAvailableSlots({
+      date: dateYmd,
+      hostTimezone,
+      durationMin: et.duration_min,
+      bufferBeforeMin: et.buffer_before_min,
+      bufferAfterMin: et.buffer_after_min,
+      minNoticeMin,
+      maxAdvanceDays: et.max_advance_days,
+      rules: rules ?? [],
+      overrides: overrides ?? [],
+      busy: [],
+    });
+    const allowed = allowedSlots.some((slot) => slot.getTime() === startAt.getTime());
+    if (!allowed) {
+      throw new Error("That time is no longer available. Please pick another slot.");
+    }
 
     // Conflict check
     const { data: conflicts } = await supabaseAdmin
@@ -210,24 +263,6 @@ export const createBooking = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
 
-    // Fire webhook (best-effort)
-    const { logAndDispatch } = await import("./webhook.server");
-    await logAndDispatch({
-      event: "booking.confirmed",
-      bookingId: booking.id,
-      data: {
-        hostUserId: et.user_id,
-        eventTypeId: et.id,
-        eventTitle: et.title,
-        inviteeName: data.inviteeName,
-        inviteeEmail: data.inviteeEmail,
-        inviteeNotes: data.inviteeNotes,
-        startAt: booking.start_at,
-        endAt: booking.end_at,
-        cancelToken: booking.cancel_token,
-      },
-    });
-
     let meetingUrl: string | undefined;
 
     try {
@@ -265,6 +300,29 @@ export const createBooking = createServerFn({ method: "POST" })
       console.warn("Google Calendar event create failed", err);
     }
     const sharedMeetingUrl = meetingUrl ?? linkFromLocation;
+
+    // Fire webhook (best-effort) after meeting URL is known.
+    const { logAndDispatch } = await import("./webhook.server");
+    await logAndDispatch({
+      event: "booking.confirmed",
+      bookingId: booking.id,
+      data: {
+        hostUserId: et.user_id,
+        eventTypeId: et.id,
+        eventTitle: et.title,
+        inviteeName: data.inviteeName,
+        inviteeEmail: data.inviteeEmail,
+        inviteeNotes: data.inviteeNotes,
+        startAt: booking.start_at,
+        endAt: booking.end_at,
+        startAtHostLocal: formatZonedDateTime(booking.start_at, hostTimezone),
+        endAtHostLocal: formatZonedDateTime(booking.end_at, hostTimezone),
+        hostTimezone,
+        cancelToken: booking.cancel_token,
+        meetingUrl: sharedMeetingUrl ?? null,
+        locationLabel,
+      },
+    });
 
     // Send confirmation email to invitee + host (best-effort).
     const { sendBookingConfirmationEmail, sendHostBookingNotificationEmail } = await import(

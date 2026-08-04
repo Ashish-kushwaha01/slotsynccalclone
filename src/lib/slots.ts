@@ -48,19 +48,26 @@ export function zonedDateToUtc(dateYmd: string, minutesFromMidnight: number, tim
   const mm = minutesFromMidnight % 60;
   // Guess an instant, then correct for the timezone's offset at that instant.
   const guess = new Date(Date.UTC(y, mo - 1, d, hh, mm, 0));
-  const asZoned = new Date(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(guess),
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(guess);
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  const asZonedUtc = Date.UTC(
+    Number(lookup.year),
+    Number(lookup.month) - 1,
+    Number(lookup.day),
+    Number(lookup.hour),
+    Number(lookup.minute),
+    Number(lookup.second),
   );
-  const offsetMs = guess.getTime() - asZoned.getTime();
+  const offsetMs = guess.getTime() - asZonedUtc;
   return new Date(guess.getTime() + offsetMs);
 }
 

@@ -12,6 +12,20 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
         const now = new Date();
         const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
 
+        const formatZonedDateTime = (iso: string, timeZone: string): string => {
+          const parts = new Intl.DateTimeFormat("en-CA", {
+            timeZone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).formatToParts(new Date(iso));
+          const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+          return `${lookup.year}-${lookup.month}-${lookup.day} ${lookup.hour}:${lookup.minute}`;
+        };
+
         const { data: bookings, error } = await supabaseAdmin
           .from("bookings")
           .select("*, event_types(title, duration_min)")
@@ -25,6 +39,13 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
 
         let sent = 0;
         for (const b of bookings ?? []) {
+          const { data: hostProfile } = await supabaseAdmin
+            .from("profiles")
+            .select("timezone")
+            .eq("id", b.host_user_id)
+            .maybeSingle();
+          const hostTimezone = hostProfile?.timezone ?? "UTC";
+
           await logAndDispatch({
             event: "booking.reminder",
             bookingId: b.id,
@@ -35,6 +56,9 @@ export const Route = createFileRoute("/api/public/hooks/reminders")({
               inviteeEmail: b.invitee_email,
               startAt: b.start_at,
               endAt: b.end_at,
+              startAtHostLocal: formatZonedDateTime(b.start_at, hostTimezone),
+              endAtHostLocal: formatZonedDateTime(b.end_at, hostTimezone),
+              hostTimezone,
               cancelToken: b.cancel_token,
             },
           });

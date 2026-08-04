@@ -8,6 +8,7 @@ import {
   deleteEventType,
   getMyProfile,
 } from "@/lib/host.functions";
+import { getGoogleCalendarConnection } from "@/lib/calendar.functions";
 import { EventTypeDrawer, type EventTypeDraft } from "@/components/EventTypeDrawer";
 import { CreateMenu } from "@/components/CreateMenu";
 import { useEffect, useMemo, useState } from "react";
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 const TABS = ["Event types", "Single-use links", "Meeting polls", "Routing forms"] as const;
 
-function newDraft(): EventTypeDraft {
+function newDraft(googleConnected: boolean): EventTypeDraft {
   return {
     slug: "new-meeting-" + Math.floor(Math.random() * 1000),
     title: "New Meeting",
@@ -42,7 +43,7 @@ function newDraft(): EventTypeDraft {
     buffer_after_min: 0,
     min_notice_min: 60,
     max_advance_days: 60,
-    location: "Google Meet",
+    location: googleConnected ? "Google Meet" : "Ask invitee",
     color: "#6366f1",
     active: true,
   };
@@ -53,6 +54,7 @@ function SchedulingPage() {
   const saveFn = useServerFn(upsertEventType);
   const delFn = useServerFn(deleteEventType);
   const profFn = useServerFn(getMyProfile);
+  const calendarFn = useServerFn(getGoogleCalendarConnection);
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<typeof TABS[number]>("Event types");
@@ -77,6 +79,8 @@ function SchedulingPage() {
 
   const q = useQuery({ queryKey: ["my-event-types"], queryFn: () => listFn() });
   const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => profFn() });
+  const calendarQ = useQuery({ queryKey: ["google-calendar-connection"], queryFn: () => calendarFn() });
+  const googleConnected = Boolean(calendarQ.data);
 
   const save = useMutation({
     mutationFn: (draft: EventTypeDraft) => saveFn({ data: draft }),
@@ -163,7 +167,7 @@ function SchedulingPage() {
               📅 Manage availability
             </Link>
             <CreateMenu
-              onCreateOneOnOne={() => setDrawer(newDraft())}
+              onCreateOneOnOne={() => setDrawer(newDraft(googleConnected))}
             />
           </div>
         </div>
@@ -240,7 +244,7 @@ function SchedulingPage() {
             ) : filtered.length === 0 ? (
               <div className="p-10 text-center">
                 <p className="text-sm text-muted-foreground">No event types yet.</p>
-                <button className="btn-brand mt-4" onClick={() => setDrawer(newDraft())}>
+                <button className="btn-brand mt-4" onClick={() => setDrawer(newDraft(googleConnected))}>
                   Create your first event type
                 </button>
               </div>
@@ -413,6 +417,7 @@ function SchedulingPage() {
         onDelete={drawer?.id ? () => del.mutate(drawer.id!) : undefined}
         onPreview={() => drawer && username && window.open(`/${username}/${drawer.slug}`, "_blank")}
         saving={save.isPending}
+        googleConnected={googleConnected}
       />
     </AppShell>
   );
