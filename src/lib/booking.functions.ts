@@ -39,6 +39,7 @@ function formatYmdInZone(iso: string, timeZone: string): string {
 // (bookings insert has no anon policy by design).
 
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+const outreachSchema = z.object({ token: z.string().min(6).max(64) });
 
 // --- Fetch host public profile + one event type by slug ---
 export const getPublicEventType = createServerFn({ method: "POST" })
@@ -66,6 +67,21 @@ export const getPublicEventType = createServerFn({ method: "POST" })
     return { profile, eventType: et };
   });
 
+// --- Fetch outreach personalization by token ---
+export const getOutreachLink = createServerFn({ method: "POST" })
+  .inputValidator((raw: unknown) => outreachSchema.parse(raw))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: link, error } = await supabaseAdmin
+      .from("outreach_links")
+      .select("token, lead_name, lead_email, video_url")
+      .eq("token", data.token)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!link) return null;
+    return link;
+  });
+
 // --- Fetch host profile + all active event types ---
 export const getPublicHostPage = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) => z.object({ username: z.string() }).parse(raw))
@@ -91,7 +107,11 @@ export const getPublicHostPage = createServerFn({ method: "POST" })
 // --- Compute slots for a given day ---
 export const getAvailableSlots = createServerFn({ method: "POST" })
   .inputValidator((raw: unknown) =>
-    z.object({ eventTypeId: z.string().uuid(), date: dateSchema }).parse(raw),
+    z.object({
+      eventTypeId: z.string().uuid(),
+      date: dateSchema,
+      nowIso: z.string().datetime().optional(),
+    }).parse(raw),
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -139,6 +159,11 @@ export const getAvailableSlots = createServerFn({ method: "POST" })
     });
     if (googleBusy.length > 0) busy.push(...googleBusy);
 
+    const serverNow = new Date();
+    const clientNow = data.nowIso ? new Date(data.nowIso) : null;
+    const effectiveNow = clientNow && !Number.isNaN(clientNow.getTime()) && clientNow > serverNow
+      ? clientNow
+      : serverNow;
     const slots = computeAvailableSlots({
       date: data.date,
       hostTimezone,
@@ -151,6 +176,7 @@ export const getAvailableSlots = createServerFn({ method: "POST" })
       rules: rules ?? [],
       overrides: overrides ?? [],
       busy,
+      now: effectiveNow,
     });
     return { slots: slots.map((d) => d.toISOString()) };
   });

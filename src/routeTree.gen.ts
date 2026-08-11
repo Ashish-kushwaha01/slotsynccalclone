@@ -21,9 +21,18 @@ import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AiTokenRouteImport } from './routes/ai/$token'
+import { Route as ApiBookingsRouteImport } from './routes/api/bookings'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as BookingTokenRouteImport } from './routes/booking.$token'
+import { Route as ApiBookingTokenRouteImport } from './routes/api/booking/$token'
+import { Route as ApiBookingsIdRouteImport } from './routes/api/bookings/$id'
+import { Route as ApiBookingsCancelRouteImport } from './routes/api/bookings/cancel'
+import { Route as ApiBookingsRescheduleRouteImport } from './routes/api/bookings/reschedule'
+import { Route as ApiRemindersCancelRouteImport } from './routes/api/reminders/cancel'
+import { Route as ApiRemindersCreateRouteImport } from './routes/api/reminders/create'
 import { Route as ApiOauthGoogleCallbackRouteImport } from './routes/api/oauth/google/callback'
+import { Route as ApiPublicHooksInboundEmailRouteImport } from './routes/api/public/hooks/inbound-email'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 
 const IndexRoute = IndexRouteImport.update({
@@ -87,6 +96,16 @@ const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AiTokenRoute = AiTokenRouteImport.update({
+  id: '/ai/$token',
+  path: '/ai/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsRoute = ApiBookingsRouteImport.update({
+  id: '/api/bookings',
+  path: '/api/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/callback',
   path: '/callback',
@@ -97,11 +116,47 @@ const BookingTokenRoute = BookingTokenRouteImport.update({
   path: '/booking/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingTokenRoute = ApiBookingTokenRouteImport.update({
+  id: '/api/booking/$token',
+  path: '/api/booking/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsIdRoute = ApiBookingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiBookingsCancelRoute = ApiBookingsCancelRouteImport.update({
+  id: '/cancel',
+  path: '/cancel',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiBookingsRescheduleRoute = ApiBookingsRescheduleRouteImport.update({
+  id: '/reschedule',
+  path: '/reschedule',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiRemindersCancelRoute = ApiRemindersCancelRouteImport.update({
+  id: '/api/reminders/cancel',
+  path: '/api/reminders/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRemindersCreateRoute = ApiRemindersCreateRouteImport.update({
+  id: '/api/reminders/create',
+  path: '/api/reminders/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiOauthGoogleCallbackRoute = ApiOauthGoogleCallbackRouteImport.update({
   id: '/api/oauth/google/callback',
   path: '/api/oauth/google/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksInboundEmailRoute =
+  ApiPublicHooksInboundEmailRouteImport.update({
+    id: '/api/public/hooks/inbound-email',
+    path: '/api/public/hooks/inbound-email',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
   id: '/api/public/hooks/reminders',
   path: '/api/public/hooks/reminders',
@@ -119,10 +174,19 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesByTo {
@@ -136,10 +200,19 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesById {
@@ -155,10 +228,19 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
   '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
   '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRouteTypes {
@@ -174,10 +256,19 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/ai/$token'
+    | '/api/bookings'
     | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
     | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -191,10 +282,19 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/ai/$token'
+    | '/api/bookings'
     | '/auth/callback'
     | '/booking/$token'
     | '/$username'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
     | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   id:
     | '__root__'
@@ -209,10 +309,19 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/event-types'
     | '/_authenticated/settings'
+    | '/ai/$token'
+    | '/api/bookings'
     | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
     | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   fileRoutesById: FileRoutesById
 }
@@ -222,9 +331,15 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRoute
   UsernameSlugRoute: typeof UsernameSlugRoute
+  AiTokenRoute: typeof AiTokenRoute
+  ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
   BookingTokenRoute: typeof BookingTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
+  ApiBookingTokenRoute: typeof ApiBookingTokenRoute
+  ApiRemindersCancelRoute: typeof ApiRemindersCancelRoute
+  ApiRemindersCreateRoute: typeof ApiRemindersCreateRoute
   ApiOauthGoogleCallbackRoute: typeof ApiOauthGoogleCallbackRoute
+  ApiPublicHooksInboundEmailRoute: typeof ApiPublicHooksInboundEmailRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
 }
 
@@ -314,6 +429,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/ai/$token': {
+      id: '/ai/$token'
+      path: '/ai/$token'
+      fullPath: '/ai/$token'
+      preLoaderRoute: typeof AiTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings': {
+      id: '/api/bookings'
+      path: '/api/bookings'
+      fullPath: '/api/bookings'
+      preLoaderRoute: typeof ApiBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/callback': {
       id: '/auth/callback'
       path: '/callback'
@@ -328,11 +457,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/booking/$token': {
+      id: '/api/booking/$token'
+      path: '/api/booking/$token'
+      fullPath: '/api/booking/$token'
+      preLoaderRoute: typeof ApiBookingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings/$id': {
+      id: '/api/bookings/$id'
+      path: '/$id'
+      fullPath: '/api/bookings/$id'
+      preLoaderRoute: typeof ApiBookingsIdRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/bookings/cancel': {
+      id: '/api/bookings/cancel'
+      path: '/cancel'
+      fullPath: '/api/bookings/cancel'
+      preLoaderRoute: typeof ApiBookingsCancelRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/bookings/reschedule': {
+      id: '/api/bookings/reschedule'
+      path: '/reschedule'
+      fullPath: '/api/bookings/reschedule'
+      preLoaderRoute: typeof ApiBookingsRescheduleRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/reminders/cancel': {
+      id: '/api/reminders/cancel'
+      path: '/api/reminders/cancel'
+      fullPath: '/api/reminders/cancel'
+      preLoaderRoute: typeof ApiRemindersCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/reminders/create': {
+      id: '/api/reminders/create'
+      path: '/api/reminders/create'
+      fullPath: '/api/reminders/create'
+      preLoaderRoute: typeof ApiRemindersCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/oauth/google/callback': {
       id: '/api/oauth/google/callback'
       path: '/api/oauth/google/callback'
       fullPath: '/api/oauth/google/callback'
       preLoaderRoute: typeof ApiOauthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/inbound-email': {
+      id: '/api/public/hooks/inbound-email'
+      path: '/api/public/hooks/inbound-email'
+      fullPath: '/api/public/hooks/inbound-email'
+      preLoaderRoute: typeof ApiPublicHooksInboundEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/reminders': {
@@ -376,15 +554,37 @@ const AuthRouteChildren: AuthRouteChildren = {
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 
+interface ApiBookingsRouteChildren {
+  ApiBookingsIdRoute: typeof ApiBookingsIdRoute
+  ApiBookingsCancelRoute: typeof ApiBookingsCancelRoute
+  ApiBookingsRescheduleRoute: typeof ApiBookingsRescheduleRoute
+}
+
+const ApiBookingsRouteChildren: ApiBookingsRouteChildren = {
+  ApiBookingsIdRoute: ApiBookingsIdRoute,
+  ApiBookingsCancelRoute: ApiBookingsCancelRoute,
+  ApiBookingsRescheduleRoute: ApiBookingsRescheduleRoute,
+}
+
+const ApiBookingsRouteWithChildren = ApiBookingsRoute._addFileChildren(
+  ApiBookingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRoute,
   UsernameSlugRoute: UsernameSlugRoute,
+  AiTokenRoute: AiTokenRoute,
+  ApiBookingsRoute: ApiBookingsRouteWithChildren,
   BookingTokenRoute: BookingTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,
+  ApiBookingTokenRoute: ApiBookingTokenRoute,
+  ApiRemindersCancelRoute: ApiRemindersCancelRoute,
+  ApiRemindersCreateRoute: ApiRemindersCreateRoute,
   ApiOauthGoogleCallbackRoute: ApiOauthGoogleCallbackRoute,
+  ApiPublicHooksInboundEmailRoute: ApiPublicHooksInboundEmailRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
 }
 export const routeTree = rootRouteImport
