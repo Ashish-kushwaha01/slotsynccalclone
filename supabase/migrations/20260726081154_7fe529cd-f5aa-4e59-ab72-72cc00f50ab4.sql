@@ -1,24 +1,24 @@
 
 -- -- =============== PROFILES ===============
--- CREATE TABLE public.profiles (
---   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
---   username TEXT NOT NULL UNIQUE,
---   display_name TEXT NOT NULL,
---   bio TEXT,
---   avatar_url TEXT,
---   timezone TEXT NOT NULL DEFAULT 'UTC',
---   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
---   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
---   CONSTRAINT username_format CHECK (username ~ '^[a-z0-9][a-z0-9-]{2,39}$')
--- );
--- GRANT SELECT ON public.profiles TO anon;
--- GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
--- GRANT ALL ON public.profiles TO service_role;
--- ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "profiles_public_read" ON public.profiles FOR SELECT USING (true);
--- CREATE POLICY "profiles_owner_insert" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
--- CREATE POLICY "profiles_owner_update" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
--- CREATE POLICY "profiles_owner_delete" ON public.profiles FOR DELETE TO authenticated USING (auth.uid() = id);
+CREATE TABLE public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  username TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  bio TEXT,
+  avatar_url TEXT,
+  timezone TEXT NOT NULL DEFAULT 'UTC',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT username_format CHECK (username ~ '^[a-z0-9][a-z0-9-]{2,39}$')
+);
+GRANT SELECT ON public.profiles TO anon;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
+GRANT ALL ON public.profiles TO service_role;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "profiles_public_read" ON public.profiles FOR SELECT USING (true);
+CREATE POLICY "profiles_owner_insert" ON public.profiles FOR INSERT TO authenticated WITH CHECK (auth.uid() = id);
+CREATE POLICY "profiles_owner_update" ON public.profiles FOR UPDATE TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "profiles_owner_delete" ON public.profiles FOR DELETE TO authenticated USING (auth.uid() = id);
 
 -- =============== EVENT TYPES ===============
 CREATE TABLE public.event_types (
