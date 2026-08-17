@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
-    "build:vercel": "NITRO_PRESET=vercel vite build",
+    "build:vercel": "cross-env NITRO_PRESET=vercel vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -70,6 +70,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+      "cross-env": "^7.0.3",
     "@eslint/js": "^9.32.0",
     "@lovable.dev/vite-tanstack-config": "^2.7.7",
     "@types/node": "^22.16.5",
