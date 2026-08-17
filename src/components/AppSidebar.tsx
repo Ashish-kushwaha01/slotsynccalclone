@@ -13,9 +13,11 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyProfile } from "@/lib/host.functions";
 
 const nav = [
   { to: "/dashboard", label: "Scheduling", icon: CalendarClock },
@@ -36,6 +38,9 @@ export function AppSidebar({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [name, setName] = useState<string>("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const profileFn = useServerFn(getMyProfile);
+  const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => profileFn() });
+  const avatarUrl = profileQ.data?.avatar_url ?? null;
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -66,8 +71,16 @@ export function AppSidebar({
               onClick={() => setMenuOpen((v) => !v)}
               className="flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-secondary"
             >
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-soft text-xs font-semibold text-brand">
-                {(name.charAt(0) || "S").toUpperCase()}
+              <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-full bg-brand-soft text-xs font-semibold text-brand">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={`${name || "User"} avatar`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  (name.charAt(0) || "S").toUpperCase()
+                )}
               </div>
               <span className="flex-1 truncate text-sm font-semibold text-sidebar-foreground">
                 {name || "SlotSync"}
@@ -111,7 +124,7 @@ export function AppSidebar({
         {nav.map((item) => {
           const active = pathname.startsWith(item.to);
           const Icon = item.icon;
-          const isStub = item.to !== "/dashboard";
+          const isStub = item.to === "/contacts" || item.to === "/automations";
           return (
             <Link
               key={item.to}

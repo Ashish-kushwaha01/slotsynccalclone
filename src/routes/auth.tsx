@@ -2,10 +2,10 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
+import { oauth } from "@/integrations/oauth";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/BrandMark";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 
 const searchSchema = z.object({
   mode: z.enum(["signin", "signup"]).optional(),
@@ -29,7 +29,9 @@ function AuthPage() {
   const [mode, setMode] = useState<"signin" | "signup">(search.mode ?? "signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   useEffect(() => {
     void supabase.auth.getSession().then(({ data }) => {
@@ -42,17 +44,23 @@ function AuthPage() {
     setLoading(true);
     try {
       if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: { emailRedirectTo: `${window.location.origin}/auth?mode=signin` },
         });
         if (error) throw error;
-        toast.success("Account created! Check your email if confirmation is required.");
-        navigate({ to: "/dashboard" });
+        if (data.session) {
+          setPendingEmail(null);
+          navigate({ to: "/dashboard" });
+        } else {
+          setPendingEmail(email);
+          toast.success("Account created! Check your email to confirm before signing in.");
+        }
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        setPendingEmail(null);
         navigate({ to: search.redirect ?? "/dashboard" });
       }
     } catch (err) {
@@ -62,10 +70,28 @@ function AuthPage() {
     }
   }
 
+  async function handleResend() {
+    if (!pendingEmail) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resend({ type: "signup", email: pendingEmail });
+      if (error) throw error;
+      toast.success("Confirmation email resent. Please check your inbox/spam.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to resend confirmation email");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function handleGoogle() {
     setLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    const redirectTo = new URL("/auth/callback", window.location.origin);
+    if (search.redirect) {
+      redirectTo.searchParams.set("redirect", search.redirect);
+    }
+    const result = await oauth.auth.signInWithOAuth("google", {
+      redirect_uri: redirectTo.toString(),
     });
     if (result.error) {
       toast.error(result.error.message);
@@ -121,15 +147,25 @@ function AuthPage() {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm text-foreground outline-none ring-ring/40 transition focus:border-primary focus:ring-2"
-                placeholder="At least 8 characters"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-md border border-input bg-surface px-3 py-2 pr-10 text-sm text-foreground outline-none ring-ring/40 transition focus:border-primary focus:ring-2"
+                  placeholder="At least 8 characters"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-2 inline-flex items-center justify-center text-muted-foreground transition hover:text-foreground"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
             <button
               type="submit"
@@ -141,10 +177,27 @@ function AuthPage() {
             </button>
           </form>
 
+          {mode === "signup" && pendingEmail && (
+            <div className="mt-4 rounded-md border border-border bg-surface px-3 py-2 text-xs text-muted-foreground">
+              <div>Waiting for confirmation: {pendingEmail}</div>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={loading}
+                className="mt-2 inline-flex items-center text-xs font-semibold text-primary hover:underline disabled:opacity-60"
+              >
+                Resend confirmation email
+              </button>
+            </div>
+          )}
+
           <p className="mt-6 text-center text-sm text-muted-foreground">
             {mode === "signup" ? "Already have an account?" : "New to SlotSync?"}{" "}
             <button
-              onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+              onClick={() => {
+                setPendingEmail(null);
+                setMode(mode === "signup" ? "signin" : "signup");
+              }}
               className="font-semibold text-primary hover:underline"
             >
               {mode === "signup" ? "Sign in" : "Create account"}

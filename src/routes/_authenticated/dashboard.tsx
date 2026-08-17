@@ -8,9 +8,10 @@ import {
   deleteEventType,
   getMyProfile,
 } from "@/lib/host.functions";
+import { getGoogleCalendarConnection } from "@/lib/calendar.functions";
 import { EventTypeDrawer, type EventTypeDraft } from "@/components/EventTypeDrawer";
 import { CreateMenu } from "@/components/CreateMenu";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Search,
   ExternalLink,
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 const TABS = ["Event types", "Single-use links", "Meeting polls", "Routing forms"] as const;
 
-function newDraft(): EventTypeDraft {
+function newDraft(googleConnected: boolean): EventTypeDraft {
   return {
     slug: "new-meeting-" + Math.floor(Math.random() * 1000),
     title: "New Meeting",
@@ -42,7 +43,7 @@ function newDraft(): EventTypeDraft {
     buffer_after_min: 0,
     min_notice_min: 60,
     max_advance_days: 60,
-    location: "Google Meet",
+    location: googleConnected ? "Google Meet" : "Ask invitee",
     color: "#6366f1",
     active: true,
   };
@@ -53,15 +54,33 @@ function SchedulingPage() {
   const saveFn = useServerFn(upsertEventType);
   const delFn = useServerFn(deleteEventType);
   const profFn = useServerFn(getMyProfile);
+  const calendarFn = useServerFn(getGoogleCalendarConnection);
   const qc = useQueryClient();
 
   const [tab, setTab] = useState<typeof TABS[number]>("Event types");
   const [search, setSearch] = useState("");
   const [drawer, setDrawer] = useState<EventTypeDraft | null>(null);
   const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!menuFor) return;
+
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      if (target.closest("[data-event-menu]")) return;
+      setMenuFor(null);
+    };
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [menuFor]);
 
   const q = useQuery({ queryKey: ["my-event-types"], queryFn: () => listFn() });
   const profileQ = useQuery({ queryKey: ["my-profile"], queryFn: () => profFn() });
+  const calendarQ = useQuery({ queryKey: ["google-calendar-connection"], queryFn: () => calendarFn() });
+  const googleConnected = Boolean(calendarQ.data);
 
   const save = useMutation({
     mutationFn: (draft: EventTypeDraft) => saveFn({ data: draft }),
@@ -87,8 +106,46 @@ function SchedulingPage() {
     [q.data, search],
   );
 
+  useEffect(() => {
+    if (!q.data) return;
+    const next = new Set<string>();
+    q.data.forEach((e) => {
+      if (selectedIds.has(e.id)) next.add(e.id);
+    });
+    if (next.size !== selectedIds.size) setSelectedIds(next);
+  }, [q.data, selectedIds]);
+
+  const selectedEvents = useMemo(
+    () => (q.data ?? []).filter((e) => selectedIds.has(e.id)),
+    [q.data, selectedIds],
+  );
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const clearSelected = () => setSelectedIds(new Set());
+
+  const allSelectedActive = selectedEvents.length > 0 && selectedEvents.every((e) => e.active);
+  const allSelectedInactive = selectedEvents.length > 0 && selectedEvents.every((e) => !e.active);
+  const nextActive = allSelectedActive ? false : true;
+  const toggleLabel = allSelectedActive
+    ? "Turn off"
+    : allSelectedInactive
+      ? "Turn on"
+      : "Toggle on/off";
+
   const username = profileQ.data?.username ?? "";
   const displayName = profileQ.data?.display_name ?? "You";
+  const avatarUrl = profileQ.data?.avatar_url ?? null;
   const publicUrl = (slug: string) =>
     typeof window !== "undefined" ? `${window.location.origin}/${username}/${slug}` : "";
 
@@ -110,7 +167,7 @@ function SchedulingPage() {
               📅 Manage availability
             </Link>
             <CreateMenu
-              onCreateOneOnOne={() => setDrawer(newDraft())}
+              onCreateOneOnOne={() => setDrawer(newDraft(googleConnected))}
             />
           </div>
         </div>
@@ -152,12 +209,20 @@ function SchedulingPage() {
         {tab !== "Event types" ? (
           <EmptyTab label={tab} />
         ) : (
-          <div className="card-surface overflow-hidden">
+          <div className="card-surface overflow-visible">
             {/* Host row */}
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div className="flex items-center gap-2.5">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand">
-                  {displayName.charAt(0).toUpperCase()}
+                <div className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-brand-soft text-sm font-semibold text-brand">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt={`${displayName} avatar`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    displayName.charAt(0).toUpperCase()
+                  )}
                 </div>
                 <div className="text-sm font-semibold text-foreground">{displayName}</div>
               </div>
@@ -179,29 +244,77 @@ function SchedulingPage() {
             ) : filtered.length === 0 ? (
               <div className="p-10 text-center">
                 <p className="text-sm text-muted-foreground">No event types yet.</p>
-                <button className="btn-brand mt-4" onClick={() => setDrawer(newDraft())}>
+                <button className="btn-brand mt-4" onClick={() => setDrawer(newDraft(googleConnected))}>
                   Create your first event type
                 </button>
               </div>
             ) : (
-              <ul className="divide-y divide-border p-4">
+              <>
+                {selectedIds.size > 0 && (
+                  <div className="flex items-center justify-between border-b border-border px-4 py-3 text-sm">
+                    <div className="text-muted-foreground">
+                      {selectedIds.size} selected
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async () => {
+                          if (!confirm("Delete selected event types?")) return;
+                          try {
+                            await Promise.all(selectedEvents.map((e) => delFn({ data: { id: e.id } })));
+                            toast.success("Deleted");
+                            clearSelected();
+                            qc.invalidateQueries({ queryKey: ["my-event-types"] });
+                          } catch (e) {
+                            const message = e instanceof Error ? e.message : "Delete failed";
+                            toast.error(message);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await Promise.all(
+                              selectedEvents.map((e) =>
+                                saveFn({ data: { ...(e as EventTypeDraft), active: nextActive } }),
+                              ),
+                            );
+                            toast.success("Updated");
+                            clearSelected();
+                            qc.invalidateQueries({ queryKey: ["my-event-types"] });
+                          } catch (e) {
+                            const message = e instanceof Error ? e.message : "Update failed";
+                            toast.error(message);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary"
+                      >
+                        <Eye className="h-3.5 w-3.5" /> {toggleLabel}
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <ul className="divide-y divide-border p-4">
                 {filtered.map((et) => (
                   <li
                     key={et.id}
                     className={cn(
-                      "relative flex items-center gap-4 rounded-md border-l-4 bg-surface px-4 py-4 my-1.5 shadow-soft",
+                      "relative flex items-center gap-4 rounded-md border-l-4 bg-surface px-4 py-4 my-1.5 shadow-soft hover:cursor-pointer",
                       !et.active && "opacity-50",
                     )}
                     style={{ borderLeftColor: et.color }}
                   >
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-input"
-                      readOnly
+                      className="h-4 w-4 rounded border-input cursor-pointer"
+                      checked={selectedIds.has(et.id)}
+                      onChange={() => toggleSelected(et.id)}
                     />
                     <button
                       onClick={() => setDrawer({ ...(et as EventTypeDraft) })}
-                      className="min-w-0 flex-1 text-left"
+                      className="min-w-0 flex-1 cursor-pointer text-left"
                     >
                       <div className="text-sm font-semibold text-foreground">{et.title}</div>
                       <div className="mt-1 text-xs text-muted-foreground">
@@ -212,51 +325,55 @@ function SchedulingPage() {
                       </div>
                     </button>
                     <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(publicUrl(et.slug));
-                          toast.success("Link copied");
-                        }}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary"
-                      >
-                        <Link2 className="h-3.5 w-3.5" /> Copy link
-                      </button>
-                      <a
-                        href={`/${username}/${et.slug}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-md border border-border p-1.5 text-muted-foreground hover:bg-secondary"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                      <div className="relative">
-                        <button
-                          onClick={() => setMenuFor(menuFor === et.id ? null : et.id)}
-                          className={cn(
-                            "rounded-md border p-1.5",
-                            menuFor === et.id
-                              ? "border-brand bg-brand-soft text-brand"
-                              : "border-border text-muted-foreground hover:bg-secondary",
-                          )}
-                        >
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-                        {menuFor === et.id && (
-                          <div className="absolute right-0 top-full z-20 mt-1 w-52 overflow-hidden rounded-md border border-border bg-popover shadow-lift">
-                            <MenuItem icon={<Eye className="h-4 w-4" />} onClick={() => window.open(`/${username}/${et.slug}`, "_blank")}>View booking page</MenuItem>
-                            <MenuItem icon={<Edit className="h-4 w-4" />} onClick={() => { setMenuFor(null); setDrawer({ ...(et as EventTypeDraft) }); }}>Edit</MenuItem>
-                            <MenuItem icon={<Copy className="h-4 w-4" />} onClick={() => {
-                              setMenuFor(null);
-                              setDrawer({ ...(et as EventTypeDraft), id: undefined, slug: et.slug + "-copy", title: et.title + " (copy)" });
-                            }}>Duplicate</MenuItem>
-                            <div className="border-t border-border" />
-                            <MenuItem icon={<Trash2 className="h-4 w-4 text-destructive" />} onClick={() => { setMenuFor(null); if (confirm("Delete this event type?")) del.mutate(et.id); }}>
-                              <span className="text-destructive">Delete</span>
-                            </MenuItem>
+                      {et.active && (
+                        <>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(publicUrl(et.slug));
+                              toast.success("Link copied");
+                            }}
+                            className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-secondary"
+                          >
+                            <Link2 className="h-3.5 w-3.5" /> Copy link
+                          </button>
+                          <a
+                            href={`/${username}/${et.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="cursor-pointer rounded-md border border-border p-1.5 text-muted-foreground hover:bg-secondary"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                          <div className="relative" data-event-menu>
+                            <button
+                              onClick={() => setMenuFor(menuFor === et.id ? null : et.id)}
+                              className={cn(
+                                "cursor-pointer rounded-md border p-1.5",
+                                menuFor === et.id
+                                  ? "border-brand bg-brand-soft text-brand"
+                                  : "border-border text-muted-foreground hover:bg-secondary",
+                              )}
+                            >
+                              <MoreVertical className="h-4 w-4" />
+                            </button>
+                            {menuFor === et.id && (
+                              <div className="absolute right-0 top-full z-30 mt-1 w-52 overflow-hidden rounded-md border border-border bg-popover shadow-lift">
+                                <MenuItem icon={<Eye className="h-4 w-4" />} onClick={() => window.open(`/${username}/${et.slug}`, "_blank")}>View booking page</MenuItem>
+                                <MenuItem icon={<Edit className="h-4 w-4" />} onClick={() => { setMenuFor(null); setDrawer({ ...(et as EventTypeDraft) }); }}>Edit</MenuItem>
+                                <MenuItem icon={<Copy className="h-4 w-4" />} onClick={() => {
+                                  setMenuFor(null);
+                                  setDrawer({ ...(et as EventTypeDraft), id: undefined, slug: et.slug + "-copy", title: et.title + " (copy)" });
+                                }}>Duplicate</MenuItem>
+                                <div className="border-t border-border" />
+                                <MenuItem icon={<Trash2 className="h-4 w-4 text-destructive" />} onClick={() => { setMenuFor(null); if (confirm("Delete this event type?")) del.mutate(et.id); }}>
+                                  <span className="text-destructive">Delete</span>
+                                </MenuItem>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <label className="ml-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        </>
+                      )}
+                      <label className="ml-2 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
                         <input
                           type="checkbox"
                           checked={et.active}
@@ -265,17 +382,27 @@ function SchedulingPage() {
                           }
                           className="peer sr-only"
                         />
-                        <span className="relative inline-block h-5 w-9 rounded-full bg-muted peer-checked:bg-brand transition">
+                        <span
+                          className={cn(
+                            "relative inline-block h-5 w-9 rounded-full border transition",
+                            et.active
+                              ? "border-brand/30 bg-brand"
+                              : "border-border bg-muted",
+                          )}
+                        >
                           <span className={cn(
-                            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-surface transition",
-                            et.active && "translate-x-4",
+                            "absolute top-0.5 left-0.5 h-4 w-4 rounded-full transition",
+                            et.active
+                              ? "translate-x-4 bg-surface"
+                              : "bg-foreground/30",
                           )} />
                         </span>
                       </label>
                     </div>
                   </li>
                 ))}
-              </ul>
+                </ul>
+              </>
             )}
           </div>
         )}
@@ -290,6 +417,7 @@ function SchedulingPage() {
         onDelete={drawer?.id ? () => del.mutate(drawer.id!) : undefined}
         onPreview={() => drawer && username && window.open(`/${username}/${drawer.slug}`, "_blank")}
         saving={save.isPending}
+        googleConnected={googleConnected}
       />
     </AppShell>
   );

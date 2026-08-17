@@ -1,5 +1,5 @@
 
--- =============== PROFILES ===============
+-- -- =============== PROFILES ===============
 CREATE TABLE public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT NOT NULL UNIQUE,

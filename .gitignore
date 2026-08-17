@@ -16,6 +16,13 @@ dist-ssr
 .nitro
 *.local
 .env
+.env.*
+!.env.example
+.vite/
+.eslintcache
+coverage/
+*.tsbuildinfo
+.lovable/
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

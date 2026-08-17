@@ -8,7 +8,12 @@ import {
   getMyAvailability,
   replaceAvailabilityRules,
 } from "@/lib/host.functions";
-import { useEffect, useState } from "react";
+import {
+  getGoogleCalendarAuthUrl,
+  getGoogleCalendarConnection,
+  deleteGoogleCalendarConnection,
+} from "@/lib/calendar.functions";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   User,
@@ -30,8 +35,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 
-const searchSchema = z.object({ tab: z.string().optional() });
+const searchSchema = z.object({
+  tab: z.string().optional(),
+  connected: z.string().optional(),
+  error: z.string().optional(),
+});
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Settings — SlotSync" }] }),
@@ -79,6 +89,21 @@ function SettingsPage() {
   const navigate = Route.useNavigate();
   const active = (search.tab as TabKey) || "profile";
   const setActive = (k: TabKey) => navigate({ search: { tab: k } });
+
+  useEffect(() => {
+    if (search.connected === "google") {
+      toast.success("Google Calendar connected.");
+    }
+    if (search.error) {
+      toast.error(`Calendar connection failed: ${search.error}`);
+    }
+    if (search.connected || search.error) {
+      navigate({
+        search: (prev) => ({ ...prev, connected: undefined, error: undefined }),
+        replace: true,
+      });
+    }
+  }, [navigate, search.connected, search.error]);
 
   return (
     <AppShell>
@@ -138,11 +163,14 @@ function ProfileTab() {
     display_name: "",
     bio: "Welcome to my scheduling page. Please follow the instructions to add an event to my calendar.",
     timezone: "UTC",
+    avatar_url: null as string | null,
     language: "English",
     date_format: "DD/MM/YYYY",
     time_format: "12h (am/pm)",
     country: "India",
   });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (q.data) {
@@ -152,6 +180,7 @@ function ProfileTab() {
         display_name: q.data!.display_name,
         bio: q.data!.bio ?? f.bio,
         timezone: q.data!.timezone,
+        avatar_url: q.data!.avatar_url ?? null,
       }));
     }
   }, [q.data]);
@@ -164,6 +193,7 @@ function ProfileTab() {
           display_name: form.display_name,
           bio: form.bio || null,
           timezone: form.timezone,
+          avatar_url: form.avatar_url ?? null,
         },
       }),
     onSuccess: () => {
@@ -206,16 +236,84 @@ function ProfileTab() {
           className="space-y-5"
         >
           <div className="flex items-center gap-4">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
-              <User className="h-8 w-8 text-muted-foreground" />
+            <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-muted">
+              {form.avatar_url ? (
+                <img
+                  src={form.avatar_url}
+                  alt={`${form.display_name || "User"} avatar`}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <User className="h-8 w-8 text-muted-foreground" />
+              )}
             </div>
             <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error("Image must be 5MB or less");
+                    return;
+                  }
+                  if (!file.type.startsWith("image/")) {
+                    toast.error("Please select an image file");
+                    return;
+                  }
+
+                  setUploadingAvatar(true);
+                  try {
+                    const { data: userData, error: userErr } = await supabase.auth.getUser();
+                    if (userErr || !userData.user) throw new Error("Unable to read user session");
+
+                    const ext = file.name.split(".").pop() || "png";
+                    const path = `${userData.user.id}/avatar-${Date.now()}.${ext}`;
+                    const { error: uploadErr } = await supabase.storage
+                      .from("avatars")
+                      .upload(path, file, {
+                        upsert: true,
+                        cacheControl: "3600",
+                        contentType: file.type,
+                      });
+                    if (uploadErr) throw new Error(uploadErr.message);
+
+                    const { data: publicData } = supabase.storage
+                      .from("avatars")
+                      .getPublicUrl(path);
+                    const publicUrl = `${publicData.publicUrl}?v=${Date.now()}`;
+
+                    await save({
+                      data: {
+                        username: form.username,
+                        display_name: form.display_name,
+                        bio: form.bio || null,
+                        timezone: form.timezone,
+                        avatar_url: publicUrl,
+                      },
+                    });
+
+                    setForm((prev) => ({ ...prev, avatar_url: publicUrl }));
+                    qc.invalidateQueries({ queryKey: ["my-profile"] });
+                    toast.success("Profile photo updated");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Upload failed");
+                  } finally {
+                    setUploadingAvatar(false);
+                    if (fileInputRef.current) fileInputRef.current.value = "";
+                  }
+                }}
+              />
               <button
                 type="button"
-                onClick={() => toast.info("Avatar upload coming soon")}
+                onClick={() => fileInputRef.current?.click()}
                 className="btn-outline"
+                disabled={uploadingAvatar}
               >
-                Upload picture
+                {uploadingAvatar ? "Uploading…" : "Upload picture"}
               </button>
               <p className="mt-1 text-xs text-muted-foreground">JPG, GIF or PNG. Max size of 5MB.</p>
             </div>
@@ -232,6 +330,14 @@ function ProfileTab() {
                 className="flex-1 bg-surface px-3 py-2 text-sm outline-none"
               />
             </div>
+          </Field>
+          <Field label="Email">
+            <input
+              value={q.data?.email ?? ""}
+              readOnly
+              className="input bg-muted text-muted-foreground"
+              placeholder="Email will appear after confirmation"
+            />
           </Field>
           <Field label="Name">
             <input
@@ -305,14 +411,33 @@ function ProfileTab() {
 function CalendarTab() {
   const [sub, setSub] = useState<"calendar" | "advanced">("calendar");
   const [pickerOpen, setPickerOpen] = useState(false);
-  const connected = false;
+  const fetchConnection = useServerFn(getGoogleCalendarConnection);
+  const getAuthUrl = useServerFn(getGoogleCalendarAuthUrl);
+  const deleteConnection = useServerFn(deleteGoogleCalendarConnection);
+  const connectionQuery = useQuery({
+    queryKey: ["google-calendar-connection"],
+    queryFn: () => fetchConnection(),
+  });
+  const connected = Boolean(connectionQuery.data);
+  const deleteMut = useMutation({
+    mutationFn: () => deleteConnection(),
+    onSuccess: () => {
+      toast.success("Calendar disconnected");
+      connectionQuery.refetch();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
-  const startConnect = (provider: "google" | "microsoft") => {
+  const startConnect = async () => {
     setPickerOpen(false);
-    const label = provider === "google" ? "Google Calendar" : "Microsoft Outlook Calendar";
-    toast.info(
-      `${label} OAuth isn't configured yet. Add the OAuth client credentials to enable one-click connect.`,
-    );
+    try {
+      const origin = window.location.origin;
+      const redirectTo = `${window.location.pathname}${window.location.search}`;
+      const result = await getAuthUrl({ data: { origin, redirectTo } });
+      window.location.href = result.url;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to start Google OAuth");
+    }
   };
 
   return (
@@ -352,11 +477,21 @@ function CalendarTab() {
                   <div className="flex h-10 w-10 items-center justify-center rounded bg-brand-soft text-brand">📅</div>
                   <div>
                     <div className="text-sm font-semibold text-foreground">Google Calendar</div>
-                    <div className="text-xs text-muted-foreground">you@example.com</div>
+                    <div className="text-xs text-muted-foreground">
+                      {connectionQuery.data?.email ?? "Connected"}
+                    </div>
                     <a className="text-xs text-brand hover:underline" href="#">Checking 1 calendar</a>
                   </div>
                 </div>
-                <button className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary"><Trash2 className="h-4 w-4" /></button>
+                <button
+                  onClick={() => {
+                    if (deleteMut.isPending) return;
+                    if (confirm("Disconnect this calendar?")) deleteMut.mutate();
+                  }}
+                  className="rounded-md p-1.5 text-muted-foreground hover:bg-secondary"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             ) : (
               <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
@@ -396,7 +531,7 @@ function CalendarTab() {
             </p>
             <div className="mt-5 space-y-2">
               <button
-                onClick={() => startConnect("google")}
+                onClick={startConnect}
                 className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
               >
                 <span className="text-2xl">📅</span>
@@ -406,7 +541,7 @@ function CalendarTab() {
                 </div>
               </button>
               <button
-                onClick={() => startConnect("microsoft")}
+                onClick={() => toast.info("Microsoft OAuth is not wired yet.")}
                 className="flex w-full items-center gap-3 rounded-md border border-border px-4 py-3 text-left transition hover:border-primary hover:bg-brand-soft"
               >
                 <span className="text-2xl">📧</span>

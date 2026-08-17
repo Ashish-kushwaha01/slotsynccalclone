@@ -10,9 +10,10 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
-import { reportLovableError } from "../lib/lovable-error-reporting";
+import { reportRuntimeError } from "../lib/runtime-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { ensureProfileForUser } from "@/lib/profile-client";
 
 function NotFoundComponent() {
   return (
@@ -40,7 +41,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportRuntimeError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
   return (
@@ -95,10 +96,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "SlotSync — Scheduling without the back-and-forth" },
       { name: "twitter:description", content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f8279a7e-067e-4c39-ac95-aedf2f00897c/id-preview-f33461b9--e01163a3-4740-426b-ac8c-561da6acbe2c.lovable.app-1785053947638.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/f8279a7e-067e-4c39-ac95-aedf2f00897c/id-preview-f33461b9--e01163a3-4740-426b-ac8c-561da6acbe2c.lovable.app-1785053947638.png" },
+      { property: "og:image", content: "/SlotSync_Logo.png" },
+      { name: "twitter:image", content: "/SlotSync_Logo.png" },
     ],
     links: [
+      { rel: "icon", type: "image/png", href: "/SlotSync_Logo.png" },
       {
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap",
@@ -131,10 +133,13 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        void ensureProfileForUser(session?.user);
+      }
     });
     return () => data.subscription.unsubscribe();
   }, [queryClient, router]);
@@ -142,7 +147,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" closeButton />
     </QueryClientProvider>
   );
 }

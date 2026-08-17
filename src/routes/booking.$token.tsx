@@ -45,7 +45,21 @@ function BookingDetail() {
   const start = new Date(b.start_at);
   const end = new Date(b.end_at);
 
-  const timeRange = `${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "")} - ${end.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" }).toLowerCase().replace(" ", "")}, ${start.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" })}`;
+  const hostTz = b.host?.timezone || "UTC";
+  const timeFormatter = new Intl.DateTimeFormat(undefined, {
+    timeZone: hostTz,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  const dateFormatter = new Intl.DateTimeFormat(undefined, {
+    timeZone: hostTz,
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
+  const timeRange = `${timeFormatter.format(start).toLowerCase().replace(" ", "")} - ${timeFormatter.format(end).toLowerCase().replace(" ", "")}, ${dateFormatter.format(start)}`;
 
   return (
     <Shell>
@@ -91,7 +105,7 @@ function BookingDetail() {
             </div>
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4 text-muted-foreground" />
-              {b.invitee_timezone || b.host?.timezone || "UTC"}
+              {hostTz}
             </div>
             <div className="flex items-center gap-2">
               <Video className="h-4 w-4 text-muted-foreground" />

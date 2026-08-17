@@ -20,6 +20,7 @@ const profileUpdateSchema = z.object({
   display_name: z.string().min(1).max(80),
   bio: z.string().max(500).nullable().optional(),
   timezone: z.string().min(1).max(64),
+  avatar_url: z.string().max(500).nullable().optional(),
 });
 
 export const updateMyProfile = createServerFn({ method: "POST" })
@@ -127,6 +128,7 @@ const availabilityInputSchema = z.object({
       end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/),
     }),
   ),
+  timezone: z.string().min(1).max(64).optional(),
 });
 
 export const replaceAvailabilityRules = createServerFn({ method: "POST" })
@@ -138,6 +140,13 @@ export const replaceAvailabilityRules = createServerFn({ method: "POST" })
       .delete()
       .eq("user_id", context.userId);
     if (delErr) throw new Error(delErr.message);
+    if (data.timezone) {
+      const { error: tzErr } = await context.supabase
+        .from("profiles")
+        .update({ timezone: data.timezone })
+        .eq("id", context.userId);
+      if (tzErr) throw new Error(tzErr.message);
+    }
     if (data.rules.length > 0) {
       const { error } = await context.supabase
         .from("availability_rules")
@@ -153,10 +162,44 @@ export const listMyBookings = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("bookings")
-      .select("*, event_types(title, slug, color)")
+      .select("*, meeting_url, event_types(title, slug, color, location)")
       .eq("host_user_id", context.userId)
       .order("start_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
     return data ?? [];
+  });
+
+export const cancelMyBooking = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((raw: unknown) =>
+    z
+      .object({ bookingId: z.string().uuid(), reason: z.string().max(500).optional() })
+      .parse(raw),
+  )
+  .handler(async ({ context, data }) => {
+    const { data: booking, error } = await context.supabase
+      .from("bookings")
+      .update({ status: "cancelled", cancel_reason: data.reason ?? null })
+      .eq("id", data.bookingId)
+      .eq("host_user_id", context.userId)
+      .eq("status", "confirmed")
+      .select("id, host_user_id, invitee_email, start_at")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!booking) throw new Error("Booking not found or already cancelled");
+
+    const { logAndDispatch } = await import("./webhook.server");
+    await logAndDispatch({
+      event: "booking.cancelled",
+      bookingId: booking.id,
+      data: {
+        hostUserId: booking.host_user_id,
+        inviteeEmail: booking.invitee_email,
+        startAt: booking.start_at,
+        reason: data.reason,
+      },
+    });
+
+    return { ok: true };
   });

@@ -54,6 +54,7 @@ export type Database = {
           invitee_name: string
           invitee_notes: string | null
           invitee_timezone: string
+          meeting_url: string | null
           reminder_sent: boolean
           start_at: string
           status: string
@@ -71,6 +72,7 @@ export type Database = {
           invitee_name: string
           invitee_notes?: string | null
           invitee_timezone?: string
+          meeting_url?: string | null
           reminder_sent?: boolean
           start_at: string
           status?: string
@@ -88,6 +90,7 @@ export type Database = {
           invitee_name?: string
           invitee_notes?: string | null
           invitee_timezone?: string
+          meeting_url?: string | null
           reminder_sent?: boolean
           start_at?: string
           status?: string

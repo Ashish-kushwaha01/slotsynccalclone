@@ -9,33 +9,49 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as CalendarRouteImport } from './routes/calendar'
 import { Route as UsernameIndexRouteImport } from './routes/$username.index'
-import { Route as BookingTokenRouteImport } from './routes/booking.$token'
-import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
-import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticated/contacts'
-import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated/calendar'
-import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
-import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as UsernameSlugRouteImport } from './routes/$username.$slug'
+import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
+import { Route as AuthenticatedAvailabilityRouteImport } from './routes/_authenticated/availability'
+import { Route as AuthenticatedContactsRouteImport } from './routes/_authenticated/contacts'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEventTypesRouteImport } from './routes/_authenticated/event-types'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AiTokenRouteImport } from './routes/ai/$token'
+import { Route as ApiBookingsRouteImport } from './routes/api/bookings'
+import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as BookingTokenRouteImport } from './routes/booking.$token'
+import { Route as ApiBookingTokenRouteImport } from './routes/api/booking/$token'
+import { Route as ApiBookingsIdRouteImport } from './routes/api/bookings/$id'
+import { Route as ApiBookingsCancelRouteImport } from './routes/api/bookings/cancel'
+import { Route as ApiBookingsRescheduleRouteImport } from './routes/api/bookings/reschedule'
+import { Route as ApiRemindersCancelRouteImport } from './routes/api/reminders/cancel'
+import { Route as ApiRemindersCreateRouteImport } from './routes/api/reminders/create'
+import { Route as ApiOauthGoogleCallbackRouteImport } from './routes/api/oauth/google/callback'
+import { Route as ApiPublicHooksInboundEmailRouteImport } from './routes/api/public/hooks/inbound-email'
 import { Route as ApiPublicHooksRemindersRouteImport } from './routes/api/public/hooks/reminders'
 
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CalendarRoute = CalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsernameIndexRoute = UsernameIndexRouteImport.update({
@@ -43,19 +59,26 @@ const UsernameIndexRoute = UsernameIndexRouteImport.update({
   path: '/$username/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BookingTokenRoute = BookingTokenRouteImport.update({
-  id: '/booking/$token',
-  path: '/booking/$token',
+const UsernameSlugRoute = UsernameSlugRouteImport.update({
+  id: '/$username/$slug',
+  path: '/$username/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedEventTypesRoute = AuthenticatedEventTypesRouteImport.update({
-  id: '/event-types',
-  path: '/event-types',
+const AuthenticatedAutomationsRoute =
+  AuthenticatedAutomationsRouteImport.update({
+    id: '/automations',
+    path: '/automations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAvailabilityRoute =
+  AuthenticatedAvailabilityRouteImport.update({
+    id: '/availability',
+    path: '/availability',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedContactsRoute = AuthenticatedContactsRouteImport.update({
+  id: '/contacts',
+  path: '/contacts',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -63,33 +86,77 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedContactsRoute = AuthenticatedContactsRouteImport.update({
-  id: '/contacts',
-  path: '/contacts',
+const AuthenticatedEventTypesRoute = AuthenticatedEventTypesRouteImport.update({
+  id: '/event-types',
+  path: '/event-types',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
-  id: '/calendar',
-  path: '/calendar',
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAvailabilityRoute =
-  AuthenticatedAvailabilityRouteImport.update({
-    id: '/availability',
-    path: '/availability',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedAutomationsRoute =
-  AuthenticatedAutomationsRouteImport.update({
-    id: '/automations',
-    path: '/automations',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const UsernameSlugRoute = UsernameSlugRouteImport.update({
-  id: '/$username/$slug',
-  path: '/$username/$slug',
+const AiTokenRoute = AiTokenRouteImport.update({
+  id: '/ai/$token',
+  path: '/ai/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBookingsRoute = ApiBookingsRouteImport.update({
+  id: '/api/bookings',
+  path: '/api/bookings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthCallbackRoute = AuthCallbackRouteImport.update({
+  id: '/callback',
+  path: '/callback',
+  getParentRoute: () => AuthRoute,
+} as any)
+const BookingTokenRoute = BookingTokenRouteImport.update({
+  id: '/booking/$token',
+  path: '/booking/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingTokenRoute = ApiBookingTokenRouteImport.update({
+  id: '/api/booking/$token',
+  path: '/api/booking/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBookingsIdRoute = ApiBookingsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiBookingsCancelRoute = ApiBookingsCancelRouteImport.update({
+  id: '/cancel',
+  path: '/cancel',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiBookingsRescheduleRoute = ApiBookingsRescheduleRouteImport.update({
+  id: '/reschedule',
+  path: '/reschedule',
+  getParentRoute: () => ApiBookingsRoute,
+} as any)
+const ApiRemindersCancelRoute = ApiRemindersCancelRouteImport.update({
+  id: '/api/reminders/cancel',
+  path: '/api/reminders/cancel',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRemindersCreateRoute = ApiRemindersCreateRouteImport.update({
+  id: '/api/reminders/create',
+  path: '/api/reminders/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiOauthGoogleCallbackRoute = ApiOauthGoogleCallbackRouteImport.update({
+  id: '/api/oauth/google/callback',
+  path: '/api/oauth/google/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksInboundEmailRoute =
+  ApiPublicHooksInboundEmailRouteImport.update({
+    id: '/api/public/hooks/inbound-email',
+    path: '/api/public/hooks/inbound-email',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
   id: '/api/public/hooks/reminders',
   path: '/api/public/hooks/reminders',
@@ -98,49 +165,82 @@ const ApiPublicHooksRemindersRoute = ApiPublicHooksRemindersRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/contacts': typeof AuthenticatedContactsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
+  '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
-  '/calendar': typeof AuthenticatedCalendarRoute
   '/contacts': typeof AuthenticatedContactsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/event-types': typeof AuthenticatedEventTypesRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
+  '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRoute
+  '/auth': typeof AuthRouteWithChildren
+  '/calendar': typeof CalendarRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
-  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/contacts': typeof AuthenticatedContactsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/event-types': typeof AuthenticatedEventTypesRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/ai/$token': typeof AiTokenRoute
+  '/api/bookings': typeof ApiBookingsRouteWithChildren
+  '/auth/callback': typeof AuthCallbackRoute
   '/booking/$token': typeof BookingTokenRoute
   '/$username/': typeof UsernameIndexRoute
+  '/api/booking/$token': typeof ApiBookingTokenRoute
+  '/api/bookings/$id': typeof ApiBookingsIdRoute
+  '/api/bookings/cancel': typeof ApiBookingsCancelRoute
+  '/api/bookings/reschedule': typeof ApiBookingsRescheduleRoute
+  '/api/reminders/cancel': typeof ApiRemindersCancelRoute
+  '/api/reminders/create': typeof ApiRemindersCreateRoute
+  '/api/oauth/google/callback': typeof ApiOauthGoogleCallbackRoute
+  '/api/public/hooks/inbound-email': typeof ApiPublicHooksInboundEmailRoute
   '/api/public/hooks/reminders': typeof ApiPublicHooksRemindersRoute
 }
 export interface FileRouteTypes {
@@ -148,67 +248,108 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
-    | '/calendar'
     | '/contacts'
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/ai/$token'
+    | '/api/bookings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
+    | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
-    | '/calendar'
     | '/contacts'
     | '/dashboard'
     | '/event-types'
     | '/settings'
+    | '/ai/$token'
+    | '/api/bookings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
+    | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/calendar'
     | '/$username/$slug'
     | '/_authenticated/automations'
     | '/_authenticated/availability'
-    | '/_authenticated/calendar'
     | '/_authenticated/contacts'
     | '/_authenticated/dashboard'
     | '/_authenticated/event-types'
     | '/_authenticated/settings'
+    | '/ai/$token'
+    | '/api/bookings'
+    | '/auth/callback'
     | '/booking/$token'
     | '/$username/'
+    | '/api/booking/$token'
+    | '/api/bookings/$id'
+    | '/api/bookings/cancel'
+    | '/api/bookings/reschedule'
+    | '/api/reminders/cancel'
+    | '/api/reminders/create'
+    | '/api/oauth/google/callback'
+    | '/api/public/hooks/inbound-email'
     | '/api/public/hooks/reminders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRoute
+  AuthRoute: typeof AuthRouteWithChildren
+  CalendarRoute: typeof CalendarRoute
   UsernameSlugRoute: typeof UsernameSlugRoute
+  AiTokenRoute: typeof AiTokenRoute
+  ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
   BookingTokenRoute: typeof BookingTokenRoute
   UsernameIndexRoute: typeof UsernameIndexRoute
+  ApiBookingTokenRoute: typeof ApiBookingTokenRoute
+  ApiRemindersCancelRoute: typeof ApiRemindersCancelRoute
+  ApiRemindersCreateRoute: typeof ApiRemindersCreateRoute
+  ApiOauthGoogleCallbackRoute: typeof ApiOauthGoogleCallbackRoute
+  ApiPublicHooksInboundEmailRoute: typeof ApiPublicHooksInboundEmailRoute
   ApiPublicHooksRemindersRoute: typeof ApiPublicHooksRemindersRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -218,11 +359,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/calendar': {
+      id: '/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof CalendarRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$username/': {
@@ -232,46 +380,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/booking/$token': {
-      id: '/booking/$token'
-      path: '/booking/$token'
-      fullPath: '/booking/$token'
-      preLoaderRoute: typeof BookingTokenRouteImport
+    '/$username/$slug': {
+      id: '/$username/$slug'
+      path: '/$username/$slug'
+      fullPath: '/$username/$slug'
+      preLoaderRoute: typeof UsernameSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/settings': {
-      id: '/_authenticated/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/event-types': {
-      id: '/_authenticated/event-types'
-      path: '/event-types'
-      fullPath: '/event-types'
-      preLoaderRoute: typeof AuthenticatedEventTypesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/contacts': {
-      id: '/_authenticated/contacts'
-      path: '/contacts'
-      fullPath: '/contacts'
-      preLoaderRoute: typeof AuthenticatedContactsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calendar': {
-      id: '/_authenticated/calendar'
-      path: '/calendar'
-      fullPath: '/calendar'
-      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
+    '/_authenticated/automations': {
+      id: '/_authenticated/automations'
+      path: '/automations'
+      fullPath: '/automations'
+      preLoaderRoute: typeof AuthenticatedAutomationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/availability': {
@@ -281,18 +401,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAvailabilityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/automations': {
-      id: '/_authenticated/automations'
-      path: '/automations'
-      fullPath: '/automations'
-      preLoaderRoute: typeof AuthenticatedAutomationsRouteImport
+    '/_authenticated/contacts': {
+      id: '/_authenticated/contacts'
+      path: '/contacts'
+      fullPath: '/contacts'
+      preLoaderRoute: typeof AuthenticatedContactsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/$username/$slug': {
-      id: '/$username/$slug'
-      path: '/$username/$slug'
-      fullPath: '/$username/$slug'
-      preLoaderRoute: typeof UsernameSlugRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/event-types': {
+      id: '/_authenticated/event-types'
+      path: '/event-types'
+      fullPath: '/event-types'
+      preLoaderRoute: typeof AuthenticatedEventTypesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/ai/$token': {
+      id: '/ai/$token'
+      path: '/ai/$token'
+      fullPath: '/ai/$token'
+      preLoaderRoute: typeof AiTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings': {
+      id: '/api/bookings'
+      path: '/api/bookings'
+      fullPath: '/api/bookings'
+      preLoaderRoute: typeof ApiBookingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/callback': {
+      id: '/auth/callback'
+      path: '/callback'
+      fullPath: '/auth/callback'
+      preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/booking/$token': {
+      id: '/booking/$token'
+      path: '/booking/$token'
+      fullPath: '/booking/$token'
+      preLoaderRoute: typeof BookingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/booking/$token': {
+      id: '/api/booking/$token'
+      path: '/api/booking/$token'
+      fullPath: '/api/booking/$token'
+      preLoaderRoute: typeof ApiBookingTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/bookings/$id': {
+      id: '/api/bookings/$id'
+      path: '/$id'
+      fullPath: '/api/bookings/$id'
+      preLoaderRoute: typeof ApiBookingsIdRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/bookings/cancel': {
+      id: '/api/bookings/cancel'
+      path: '/cancel'
+      fullPath: '/api/bookings/cancel'
+      preLoaderRoute: typeof ApiBookingsCancelRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/bookings/reschedule': {
+      id: '/api/bookings/reschedule'
+      path: '/reschedule'
+      fullPath: '/api/bookings/reschedule'
+      preLoaderRoute: typeof ApiBookingsRescheduleRouteImport
+      parentRoute: typeof ApiBookingsRoute
+    }
+    '/api/reminders/cancel': {
+      id: '/api/reminders/cancel'
+      path: '/api/reminders/cancel'
+      fullPath: '/api/reminders/cancel'
+      preLoaderRoute: typeof ApiRemindersCancelRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/reminders/create': {
+      id: '/api/reminders/create'
+      path: '/api/reminders/create'
+      fullPath: '/api/reminders/create'
+      preLoaderRoute: typeof ApiRemindersCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/oauth/google/callback': {
+      id: '/api/oauth/google/callback'
+      path: '/api/oauth/google/callback'
+      fullPath: '/api/oauth/google/callback'
+      preLoaderRoute: typeof ApiOauthGoogleCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/inbound-email': {
+      id: '/api/public/hooks/inbound-email'
+      path: '/api/public/hooks/inbound-email'
+      fullPath: '/api/public/hooks/inbound-email'
+      preLoaderRoute: typeof ApiPublicHooksInboundEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/hooks/reminders': {
@@ -308,7 +526,6 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedAvailabilityRoute: typeof AuthenticatedAvailabilityRoute
-  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedContactsRoute: typeof AuthenticatedContactsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEventTypesRoute: typeof AuthenticatedEventTypesRoute
@@ -318,7 +535,6 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedAvailabilityRoute: AuthenticatedAvailabilityRoute,
-  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedContactsRoute: AuthenticatedContactsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEventTypesRoute: AuthenticatedEventTypesRoute,
@@ -328,13 +544,47 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface AuthRouteChildren {
+  AuthCallbackRoute: typeof AuthCallbackRoute
+}
+
+const AuthRouteChildren: AuthRouteChildren = {
+  AuthCallbackRoute: AuthCallbackRoute,
+}
+
+const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface ApiBookingsRouteChildren {
+  ApiBookingsIdRoute: typeof ApiBookingsIdRoute
+  ApiBookingsCancelRoute: typeof ApiBookingsCancelRoute
+  ApiBookingsRescheduleRoute: typeof ApiBookingsRescheduleRoute
+}
+
+const ApiBookingsRouteChildren: ApiBookingsRouteChildren = {
+  ApiBookingsIdRoute: ApiBookingsIdRoute,
+  ApiBookingsCancelRoute: ApiBookingsCancelRoute,
+  ApiBookingsRescheduleRoute: ApiBookingsRescheduleRoute,
+}
+
+const ApiBookingsRouteWithChildren = ApiBookingsRoute._addFileChildren(
+  ApiBookingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRoute,
+  AuthRoute: AuthRouteWithChildren,
+  CalendarRoute: CalendarRoute,
   UsernameSlugRoute: UsernameSlugRoute,
+  AiTokenRoute: AiTokenRoute,
+  ApiBookingsRoute: ApiBookingsRouteWithChildren,
   BookingTokenRoute: BookingTokenRoute,
   UsernameIndexRoute: UsernameIndexRoute,
+  ApiBookingTokenRoute: ApiBookingTokenRoute,
+  ApiRemindersCancelRoute: ApiRemindersCancelRoute,
+  ApiRemindersCreateRoute: ApiRemindersCreateRoute,
+  ApiOauthGoogleCallbackRoute: ApiOauthGoogleCallbackRoute,
+  ApiPublicHooksInboundEmailRoute: ApiPublicHooksInboundEmailRoute,
   ApiPublicHooksRemindersRoute: ApiPublicHooksRemindersRoute,
 }
 export const routeTree = rootRouteImport

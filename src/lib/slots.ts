@@ -22,6 +22,7 @@ export interface SlotComputationInput {
   date: string; // YYYY-MM-DD (in host timezone)
   hostTimezone: string;
   durationMin: number;
+  slotStepMin?: number;
   bufferBeforeMin: number;
   bufferAfterMin: number;
   minNoticeMin: number;
@@ -48,19 +49,26 @@ export function zonedDateToUtc(dateYmd: string, minutesFromMidnight: number, tim
   const mm = minutesFromMidnight % 60;
   // Guess an instant, then correct for the timezone's offset at that instant.
   const guess = new Date(Date.UTC(y, mo - 1, d, hh, mm, 0));
-  const asZoned = new Date(
-    new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).format(guess),
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).formatToParts(guess);
+  const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+  const asZonedUtc = Date.UTC(
+    Number(lookup.year),
+    Number(lookup.month) - 1,
+    Number(lookup.day),
+    Number(lookup.hour),
+    Number(lookup.minute),
+    Number(lookup.second),
   );
-  const offsetMs = guess.getTime() - asZoned.getTime();
+  const offsetMs = guess.getTime() - asZonedUtc;
   return new Date(guess.getTime() + offsetMs);
 }
 
@@ -98,7 +106,7 @@ export function computeAvailableSlots(input: SlotComputationInput): Date[] {
 
   const slotLen = input.durationMin;
   const total = slotLen + input.bufferBeforeMin + input.bufferAfterMin;
-  const step = slotLen; // slot every duration
+  const step = input.slotStepMin ?? slotLen; // slot step in minutes
   const slots: Date[] = [];
 
   for (const [ws, we] of windows) {
