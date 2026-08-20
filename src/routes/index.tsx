@@ -81,9 +81,9 @@ function Landing() {
             <span className="block text-primary">your real calendar.</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg text-muted-foreground">
-            Share a single booking link. Valence syncs with your Google Calendar,
-            enforces your availability rules, and hands off confirmations and
-            reminders to your own automation stack.
+            Valence is a scheduling app that lets clients book time with you from one link.
+            It syncs with your Google Calendar, enforces your availability rules, and hands
+            off confirmations and reminders to your automation stack.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
