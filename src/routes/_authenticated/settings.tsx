@@ -572,13 +572,16 @@ function AvailabilityTab() {
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["my-availability"], queryFn: () => fetchAv() });
   const [rules, setRules] = useState<Rule[]>([]);
+  const browserTz = typeof Intl !== "undefined"
+    ? Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
+    : "UTC";
 
   useEffect(() => {
     if (q.data) setRules(q.data.rules.map((r: any) => ({ day_of_week: r.day_of_week, start_time: r.start_time.slice(0, 5), end_time: r.end_time.slice(0, 5) })));
   }, [q.data]);
 
   const save = useMutation({
-    mutationFn: () => saveAv({ data: { rules } }),
+    mutationFn: () => saveAv({ data: { rules, timezone: browserTz } }),
     onSuccess: () => {
       toast.success("Availability saved");
       qc.invalidateQueries({ queryKey: ["my-availability"] });
@@ -588,6 +591,9 @@ function AvailabilityTab() {
 
   return (
     <SettingsCard title="Availability">
+      <div className="mb-4 text-sm text-muted-foreground">
+        Times are saved in your browser time zone ({browserTz}).
+      </div>
       <div className="space-y-2">
         {DAYS.map((day, idx) => {
           const dayRules = rules.filter((r) => r.day_of_week === idx);

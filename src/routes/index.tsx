@@ -178,6 +178,11 @@ function Landing() {
             <Clock className="h-4 w-4" />
             © {new Date().getFullYear()} SlotSync
           </div>
+          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
+            <Link to="/terms" className="hover:text-foreground">Terms</Link>
+            <Link to="/cookies" className="hover:text-foreground">Cookies</Link>
+          </div>
           <div className="text-xs text-muted-foreground">Built with care for solo founders and busy teams.</div>
         </div>
       </footer>

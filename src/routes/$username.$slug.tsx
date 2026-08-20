@@ -112,7 +112,7 @@ function BookingFlow() {
   const [pendingSlot, setPendingSlot] = useState<string | null>(null);
   const [confirmedSlot, setConfirmedSlot] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", notes: "" });
-  const initialView = search.mode === "learn" || !!search.token ? "learn" : "intro";
+  const initialView = search.mode === "learn" || !!search.token ? "learn" : "booking";
   const [view, setView] = useState<"intro" | "learn" | "booking">(initialView);
 
   const eventType = eventQ.data?.eventType;
@@ -187,15 +187,21 @@ function BookingFlow() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const visibleSlots = useMemo(() => {
+    if (!slotsQ.data?.slots) return [];
+    const nowMs = Date.now();
+    return slotsQ.data.slots.filter((iso) => new Date(iso).getTime() > nowMs);
+  }, [slotsQ.data?.slots]);
+
   useEffect(() => {
     if (!slotsQ.data?.slots) return;
-    if (pendingSlot && !slotsQ.data.slots.includes(pendingSlot)) {
+    if (pendingSlot && !visibleSlots.includes(pendingSlot)) {
       setPendingSlot(null);
     }
-    if (confirmedSlot && !slotsQ.data.slots.includes(confirmedSlot)) {
+    if (confirmedSlot && !visibleSlots.includes(confirmedSlot)) {
       setConfirmedSlot(null);
     }
-  }, [slotsQ.data?.slots, pendingSlot, confirmedSlot]);
+  }, [slotsQ.data?.slots, visibleSlots, pendingSlot, confirmedSlot]);
 
   const calendarDays = useMemo(() => {
     const mm = String(monthCursor.month + 1).padStart(2, "0");
@@ -215,7 +221,7 @@ function BookingFlow() {
   }, [monthCursor, hostTimezone]);
 
   if (eventQ.isLoading) {
-    return <Shell><div className="h-96 animate-pulse rounded-lg bg-muted" /></Shell>;
+    return <Shell><div className="mx-auto max-w-5xl" /></Shell>;
   }
   if (!eventQ.data || !eventType) {
     return (
@@ -297,9 +303,9 @@ function BookingFlow() {
           })}
         </div>
         <div className="mt-6">
-          <div className="mb-1 text-sm font-semibold text-foreground">Host time zone</div>
+          <div className="mb-1 text-sm font-semibold text-foreground">Your time zone</div>
           <div className="inline-flex items-center gap-1.5 text-sm text-foreground">
-            <Globe className="h-4 w-4" /> {hostTimezone}
+            <Globe className="h-4 w-4" /> {inviteeTz}
           </div>
         </div>
       </div>
@@ -309,18 +315,18 @@ function BookingFlow() {
         <div className="w-56">
           <div className="mb-3 text-sm font-semibold text-foreground">
             {new Intl.DateTimeFormat(undefined, {
-              timeZone: hostTimezone,
+              timeZone: inviteeTz,
               weekday: "long",
               month: "long",
               day: "numeric",
             }).format(dateFromYmd(selectedDate))}
           </div>
           {slotsQ.isLoading && <div className="text-sm text-muted-foreground">Loading…</div>}
-          {slotsQ.data?.slots.length === 0 && (
+          {slotsQ.data && visibleSlots.length === 0 && (
             <div className="text-sm text-muted-foreground">No times available.</div>
           )}
           <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
-            {slotsQ.data?.slots.map((iso) => {
+            {visibleSlots.map((iso) => {
               const isPending = pendingSlot === iso;
               return (
                 <div key={iso} className={cn("flex gap-2", isPending && "gap-2")}>
@@ -334,7 +340,7 @@ function BookingFlow() {
                     )}
                   >
                     {new Intl.DateTimeFormat(undefined, {
-                      timeZone: hostTimezone,
+                      timeZone: inviteeTz,
                       hour: "numeric",
                       minute: "2-digit",
                     }).format(new Date(iso)).toLowerCase().replace(" ", "")}
@@ -374,7 +380,10 @@ function BookingFlow() {
           <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-ring/30" />
         </div>
         <p className="text-xs text-muted-foreground">
-          By proceeding, you confirm that you have read and agree to SlotSync's Participant Terms and Privacy Notice.
+          By proceeding, you confirm that you have read and agree to SlotSync's
+          <Link to="/terms" className="ml-1 text-brand hover:underline">Terms of Service</Link>
+          <span className="mx-1">and</span>
+          <Link to="/privacy" className="text-brand hover:underline">Privacy Policy</Link>.
         </p>
         <button type="submit" disabled={bookMut.isPending} className="rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground hover:bg-brand/90 disabled:opacity-60">
           {bookMut.isPending ? "Scheduling…" : "Schedule Event"}
@@ -585,8 +594,9 @@ function BookingFlow() {
 
         <div className="mt-4 flex justify-between px-2 text-xs text-muted-foreground">
           <div className="flex gap-4">
-            <a className="link-brand" href="#">Cookie settings</a>
-            <a className="link-brand" href="#">Privacy Policy</a>
+            <Link className="link-brand" to="/cookies">Cookie Policy</Link>
+            <Link className="link-brand" to="/privacy">Privacy Policy</Link>
+            <Link className="link-brand" to="/terms">Terms of Service</Link>
           </div>
         </div>
       </div>

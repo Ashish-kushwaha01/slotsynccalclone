@@ -13,6 +13,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as CalendarRouteImport } from './routes/calendar'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as UsernameIndexRouteImport } from './routes/$username.index'
 import { Route as UsernameSlugRouteImport } from './routes/$username.$slug'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
@@ -52,6 +55,21 @@ const AuthRoute = AuthRouteImport.update({
 const CalendarRoute = CalendarRouteImport.update({
   id: '/calendar',
   path: '/calendar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const UsernameIndexRoute = UsernameIndexRouteImport.update({
@@ -167,6 +185,9 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/cookies': typeof CookiesRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -193,6 +214,9 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/cookies': typeof CookiesRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/availability': typeof AuthenticatedAvailabilityRoute
@@ -221,6 +245,9 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/calendar': typeof CalendarRoute
+  '/cookies': typeof CookiesRoute
+  '/privacy': typeof PrivacyRoute
+  '/terms': typeof TermsRoute
   '/$username/$slug': typeof UsernameSlugRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/availability': typeof AuthenticatedAvailabilityRoute
@@ -249,6 +276,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/calendar'
+    | '/cookies'
+    | '/privacy'
+    | '/terms'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
@@ -275,6 +305,9 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/calendar'
+    | '/cookies'
+    | '/privacy'
+    | '/terms'
     | '/$username/$slug'
     | '/automations'
     | '/availability'
@@ -302,6 +335,9 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/calendar'
+    | '/cookies'
+    | '/privacy'
+    | '/terms'
     | '/$username/$slug'
     | '/_authenticated/automations'
     | '/_authenticated/availability'
@@ -330,6 +366,9 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   CalendarRoute: typeof CalendarRoute
+  CookiesRoute: typeof CookiesRoute
+  PrivacyRoute: typeof PrivacyRoute
+  TermsRoute: typeof TermsRoute
   UsernameSlugRoute: typeof UsernameSlugRoute
   AiTokenRoute: typeof AiTokenRoute
   ApiBookingsRoute: typeof ApiBookingsRouteWithChildren
@@ -371,6 +410,27 @@ declare module '@tanstack/react-router' {
       path: '/calendar'
       fullPath: '/calendar'
       preLoaderRoute: typeof CalendarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$username/': {
@@ -575,6 +635,9 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   CalendarRoute: CalendarRoute,
+  CookiesRoute: CookiesRoute,
+  PrivacyRoute: PrivacyRoute,
+  TermsRoute: TermsRoute,
   UsernameSlugRoute: UsernameSlugRoute,
   AiTokenRoute: AiTokenRoute,
   ApiBookingsRoute: ApiBookingsRouteWithChildren,
