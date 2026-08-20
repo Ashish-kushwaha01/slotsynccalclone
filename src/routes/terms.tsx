@@ -4,10 +4,10 @@ import { BrandMark } from "@/components/BrandMark";
 export const Route = createFileRoute("/terms")({
   head: () => ({
     meta: [
-      { title: "Terms of Service — SlotSync" },
+      { title: "Terms of Service — Valence" },
       {
         name: "description",
-        content: "The terms that govern use of SlotSync scheduling services.",
+        content: "The terms that govern use of Valence scheduling services.",
       },
     ],
   }),
@@ -35,13 +35,13 @@ function TermsOfService() {
 
         <section className="mt-8 space-y-4 text-sm text-muted-foreground">
           <p>
-            These terms govern use of SlotSync. By creating an account or booking a meeting, you
+            These terms govern use of Valence. By creating an account or booking a meeting, you
             agree to these terms.
           </p>
 
           <h2 className="text-lg font-semibold text-foreground">Service overview</h2>
           <p>
-            SlotSync provides booking links, availability management, and calendar integration to
+            Valence provides booking links, availability management, and calendar integration to
             schedule meetings between hosts and invitees.
           </p>
 
@@ -54,7 +54,7 @@ function TermsOfService() {
 
           <h2 className="text-lg font-semibold text-foreground">Acceptable use</h2>
           <ul className="list-disc space-y-2 pl-6">
-            <li>Do not use SlotSync for unlawful, harmful, or deceptive activity.</li>
+            <li>Do not use Valence for unlawful, harmful, or deceptive activity.</li>
             <li>Do not attempt to disrupt or reverse engineer the service.</li>
           </ul>
 
@@ -67,7 +67,7 @@ function TermsOfService() {
 
           <h2 className="text-lg font-semibold text-foreground">Integrations</h2>
           <p>
-            When you connect a calendar, you authorize SlotSync to read availability and create
+            When you connect a calendar, you authorize Valence to read availability and create
             events on your behalf. You can disconnect integrations at any time.
           </p>
 
@@ -79,7 +79,7 @@ function TermsOfService() {
 
           <h2 className="text-lg font-semibold text-foreground">Termination</h2>
           <p>
-            You may stop using SlotSync at any time. We may suspend accounts that violate these
+            You may stop using Valence at any time. We may suspend accounts that violate these
             terms or present security risks.
           </p>
 
@@ -98,3 +98,4 @@ function TermsOfService() {
     </div>
   );
 }
+

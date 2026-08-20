@@ -4,11 +4,11 @@ import { BrandMark } from "@/components/BrandMark";
 export const Route = createFileRoute("/privacy")({
   head: () => ({
     meta: [
-      { title: "Privacy Policy — SlotSync" },
+      { title: "Privacy Policy — Valence" },
       {
         name: "description",
         content:
-          "How SlotSync collects, uses, and protects scheduling data for hosts and invitees.",
+          "How Valence collects, uses, and protects scheduling data for hosts and invitees.",
       },
     ],
   }),
@@ -36,7 +36,7 @@ function PrivacyPolicy() {
 
         <section className="mt-8 space-y-4 text-sm text-muted-foreground">
           <p>
-            SlotSync helps hosts share booking links and lets invitees schedule meetings without
+            Valence helps hosts share booking links and lets invitees schedule meetings without
             back-and-forth. This policy explains what data we collect, how we use it, and your
             choices.
           </p>
@@ -72,7 +72,7 @@ function PrivacyPolicy() {
           <h2 className="text-lg font-semibold text-foreground">Sharing</h2>
           <p>
             Booking details are shared with the host whose link was used. We share data with
-            infrastructure providers that help us operate SlotSync (hosting, email delivery, and
+            infrastructure providers that help us operate Valence (hosting, email delivery, and
             calendar providers) under strict confidentiality obligations. We do not sell personal
             data.
           </p>
@@ -105,3 +105,4 @@ function PrivacyPolicy() {
     </div>
   );
 }
+

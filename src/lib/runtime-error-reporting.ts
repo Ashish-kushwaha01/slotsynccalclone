@@ -14,8 +14,8 @@ type RuntimeEvents = {
 
 declare global {
   interface Window {
-    __slotsyncEvents?: RuntimeEvents;
-    __slotsyncReportRuntimeError?: (payload: {
+    __valenceEvents?: RuntimeEvents;
+    __valenceReportRuntimeError?: (payload: {
       message: string;
       stack?: string;
       filename?: string;
@@ -25,7 +25,7 @@ declare global {
 
 export function reportRuntimeError(error: unknown, context: Record<string, unknown> = {}) {
   if (typeof window === "undefined") return;
-  window.__slotsyncEvents?.captureException?.(
+  window.__valenceEvents?.captureException?.(
     error,
     {
       source: "react_error_boundary",
@@ -44,9 +44,10 @@ export function reportRuntimeError(error: unknown, context: Record<string, unkno
       : error instanceof Error
         ? error.message
         : String(error);
-  window.__slotsyncReportRuntimeError?.({
+  window.__valenceReportRuntimeError?.({
     message,
     stack: error instanceof Error ? error.stack : undefined,
     filename: window.location.pathname,
   });
 }
+

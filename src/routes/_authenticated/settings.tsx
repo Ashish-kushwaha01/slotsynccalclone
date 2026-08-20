@@ -44,7 +44,7 @@ const searchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Settings — SlotSync" }] }),
+  head: () => ({ meta: [{ title: "Settings — Valence" }] }),
   validateSearch: (raw) => searchSchema.parse(raw),
   component: SettingsPage,
 });
@@ -321,7 +321,7 @@ function ProfileTab() {
 
           <Field label="Username">
             <div className="flex overflow-hidden rounded-md border border-input">
-              <span className="bg-muted px-3 py-2 text-sm text-muted-foreground">slotsync.app/</span>
+              <span className="bg-muted px-3 py-2 text-sm text-muted-foreground">valence.app/</span>
               <input
                 required
                 pattern="[a-z0-9][a-z0-9-]{2,39}"
@@ -510,7 +510,7 @@ function CalendarTab() {
               <input type="checkbox" disabled /> Include buffers on this calendar
             </label>
             <label className="mt-1 flex items-center gap-2 text-sm text-foreground">
-              <input type="checkbox" disabled defaultChecked /> Automatically sync changes from this calendar to SlotSync
+              <input type="checkbox" disabled defaultChecked /> Automatically sync changes from this calendar to Valence
             </label>
           </div>
         </div>
@@ -527,7 +527,7 @@ function CalendarTab() {
           >
             <h3 className="text-lg font-semibold text-foreground">Choose a calendar to connect</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              SlotSync will check this calendar for conflicts and add new bookings to it.
+              Valence will check this calendar for conflicts and add new bookings to it.
             </p>
             <div className="mt-5 space-y-2">
               <button
@@ -676,3 +676,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
+

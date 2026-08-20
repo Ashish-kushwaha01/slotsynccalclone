@@ -247,7 +247,7 @@ export async function sendHostBookingNotificationEmail(
     joinLine,
     `Notes: ${notes}`,
     "",
-    "Open SlotSync to manage this meeting.",
+    "Open Valence to manage this meeting.",
   ]
     .filter(Boolean)
     .join("\n");
@@ -268,7 +268,7 @@ export async function sendHostBookingNotificationEmail(
         ? `<p><a href="${params.meetingUrl}" style="display:inline-block;padding:10px 16px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Join meeting</a></p>`
         : ""
      }
-    <p>Open SlotSync to manage this meeting.</p>
+    <p>Open Valence to manage this meeting.</p>
   </body>
 </html>`;
 
@@ -421,3 +421,4 @@ export async function sendAlternativeSlotEmail(
 
   return sendEmail({ toEmail: params.toEmail, subject, text, html });
 }
+

@@ -50,7 +50,7 @@ type BookingItem = {
 };
 
 export const Route = createFileRoute("/calendar")({
-  head: () => ({ meta: [{ title: "Calendar — SlotSync" }] }),
+  head: () => ({ meta: [{ title: "Calendar — Valence" }] }),
   component: CalendarPage,
 });
 
@@ -466,3 +466,4 @@ function formatTimeRange(startIso: string, endIso: string, timeZone?: string) {
   }
   return `${formatter.format(start)} - ${formatter.format(end)}`;
 }
+

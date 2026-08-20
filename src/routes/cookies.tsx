@@ -4,11 +4,11 @@ import { BrandMark } from "@/components/BrandMark";
 export const Route = createFileRoute("/cookies")({
   head: () => ({
     meta: [
-      { title: "Cookie Policy — SlotSync" },
+      { title: "Cookie Policy — Valence" },
       {
         name: "description",
         content:
-          "Details on how SlotSync uses cookies and similar technologies to operate the service.",
+          "Details on how Valence uses cookies and similar technologies to operate the service.",
       },
     ],
   }),
@@ -36,7 +36,7 @@ function CookiePolicy() {
 
         <section className="mt-8 space-y-4 text-sm text-muted-foreground">
           <p>
-            SlotSync uses cookies and similar technologies to keep the service secure and working
+            Valence uses cookies and similar technologies to keep the service secure and working
             correctly. This policy explains what we use and why.
           </p>
 
@@ -68,3 +68,4 @@ function CookiePolicy() {
     </div>
   );
 }
+

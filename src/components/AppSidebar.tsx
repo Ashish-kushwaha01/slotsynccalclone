@@ -83,7 +83,7 @@ export function AppSidebar({
                 )}
               </div>
               <span className="flex-1 truncate text-sm font-semibold text-sidebar-foreground">
-                {name || "SlotSync"}
+                {name || "Valence"}
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -177,3 +177,4 @@ export function AppSidebar({
     </aside>
   );
 }
+

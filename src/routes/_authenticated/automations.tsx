@@ -3,7 +3,7 @@ import { AppShell } from "@/components/AppShell";
 import { Workflow } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/automations")({
-  head: () => ({ meta: [{ title: "Automations — SlotSync" }] }),
+  head: () => ({ meta: [{ title: "Automations — Valence" }] }),
   component: () => (
     <AppShell>
       <div className="mx-auto max-w-5xl p-10">
@@ -19,3 +19,4 @@ export const Route = createFileRoute("/_authenticated/automations")({
     </AppShell>
   ),
 });
+

@@ -30,7 +30,7 @@ export const Route = createFileRoute("/$username/$slug")({
   validateSearch: (raw) => searchSchema.parse(raw),
   head: ({ params }) => ({
     meta: [
-      { title: `Book with @${params.username} — SlotSync` },
+      { title: `Book with @${params.username} — Valence` },
       { name: "description", content: `Schedule a meeting with @${params.username}.` },
     ],
   }),
@@ -380,7 +380,7 @@ function BookingFlow() {
           <textarea rows={3} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="w-full rounded-md border border-input bg-surface px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-ring/30" />
         </div>
         <p className="text-xs text-muted-foreground">
-          By proceeding, you confirm that you have read and agree to SlotSync's
+          By proceeding, you confirm that you have read and agree to Valence's
           <Link to="/terms" className="ml-1 text-brand hover:underline">Terms of Service</Link>
           <span className="mx-1">and</span>
           <Link to="/privacy" className="text-brand hover:underline">Privacy Policy</Link>.
@@ -624,3 +624,4 @@ function Shell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

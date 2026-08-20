@@ -80,21 +80,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SlotSync — Scheduling without the back-and-forth" },
+      { title: "Valence — Scheduling without the back-and-forth" },
       {
         name: "description",
         content:
           "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
-      { name: "author", content: "SlotSync" },
-      { property: "og:title", content: "SlotSync — Scheduling without the back-and-forth" },
+      { name: "author", content: "Valence" },
+      { property: "og:title", content: "Valence — Scheduling without the back-and-forth" },
       {
         property: "og:description",
         content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "SlotSync — Scheduling without the back-and-forth" },
+      { name: "twitter:title", content: "Valence — Scheduling without the back-and-forth" },
       { name: "twitter:description", content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever." },
       { property: "og:image", content: "/SlotSync_Logo.png" },
       { name: "twitter:image", content: "/SlotSync_Logo.png" },
@@ -151,3 +151,5 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
+

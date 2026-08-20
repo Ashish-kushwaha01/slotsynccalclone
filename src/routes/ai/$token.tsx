@@ -8,7 +8,7 @@ import { CalendarCheck, Clock, Globe, Video } from "lucide-react";
 export const Route = createFileRoute("/ai/$token")({
   head: () => ({
     meta: [
-      { title: "SlotSync — Quick Overview" },
+      { title: "Valence — Quick Overview" },
       { name: "description", content: "A short overview before booking a meeting." },
     ],
   }),
@@ -58,7 +58,7 @@ function LandingPage() {
         <div className="grid gap-8 p-10 md:grid-cols-[1.1fr_0.9fr] md:p-12">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-sky-200">
-              SlotSync overview
+              Valence overview
             </div>
             <h1 className="mt-5 text-3xl font-semibold leading-tight md:text-4xl">
               Hi {landing.invitee_name}, here is a quick look before we meet
@@ -141,3 +141,4 @@ function PageShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

@@ -8,10 +8,10 @@ import { Clock, MapPin, ArrowRight } from "lucide-react";
 export const Route = createFileRoute("/$username/")({
   head: ({ params }) => ({
     meta: [
-      { title: `Book time with @${params.username} — SlotSync` },
+      { title: `Book time with @${params.username} — Valence` },
       {
         name: "description",
-        content: `Schedule a meeting with @${params.username} using SlotSync.`,
+        content: `Schedule a meeting with @${params.username} using Valence.`,
       },
     ],
   }),
@@ -34,7 +34,7 @@ function HostPage() {
       <PublicShell>
         <div className="card-surface p-10 text-center">
           <h1 className="text-2xl font-semibold text-foreground">Host not found</h1>
-          <p className="mt-2 text-muted-foreground">No SlotSync account uses @{username}.</p>
+          <p className="mt-2 text-muted-foreground">No Valence account uses @{username}.</p>
         </div>
       </PublicShell>
     );
@@ -114,3 +114,4 @@ function PublicShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+

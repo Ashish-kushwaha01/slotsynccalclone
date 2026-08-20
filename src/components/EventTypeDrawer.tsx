@@ -219,7 +219,7 @@ export function EventTypeDrawer({
               <Section title="Booking page options" icon={<ExternalLink className="h-4 w-4" />} value={`/${draft.slug} · ${draft.duration_min} min increments`} defaultOpen>
                 <label className="mb-1 block text-xs font-medium text-foreground">URL slug</label>
                 <div className="flex overflow-hidden rounded-md border border-input">
-                  <span className="bg-muted px-2.5 py-2 text-xs text-muted-foreground">slotsync.app/…/</span>
+                  <span className="bg-muted px-2.5 py-2 text-xs text-muted-foreground">valence.app/…/</span>
                   <input
                     value={draft.slug}
                     onChange={(e) => {
@@ -356,3 +356,4 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
     </div>
   );
 }
+

@@ -1,6 +1,6 @@
-# SlotSync
+# Valence
 
-SlotSync is a scheduling app that syncs with Google Calendar to prevent double bookings.
+Valence is a scheduling app that syncs with Google Calendar to prevent double bookings.
 
 ## Development
 
@@ -19,3 +19,4 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
+

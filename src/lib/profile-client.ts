@@ -22,7 +22,7 @@ function buildDisplayName(user: User): string {
     (metadata?.name as string | undefined) ??
     user.email?.split("@")[0];
 
-  return name?.trim() || "SlotSync user";
+  return name?.trim() || "Valence user";
 }
 
 export async function ensureProfileForUser(user: User | null | undefined): Promise<void> {
@@ -60,3 +60,4 @@ export async function ensureProfileForUser(user: User | null | undefined): Promi
     console.error("[profiles] insert failed", insertError);
   }
 }
+

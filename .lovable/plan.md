@@ -1,7 +1,7 @@
 
-# SlotSync — Calendly-style UI rebuild
+# Valence — Calendly-style UI rebuild
 
-Goal: rebuild the authenticated app + public booking flow to visually match your 10 reference screenshots, keeping the SlotSync name, logo, and the existing backend (profiles, event_types, availability, bookings, webhooks).
+Goal: rebuild the authenticated app + public booking flow to visually match your 10 reference screenshots, keeping the Valence name, logo, and the existing backend (profiles, event_types, availability, bookings, webhooks).
 
 I will **not** rebuild every Calendly feature — only what's visible in your screenshots. I'll flag anything I'm faking so we can wire it later.
 
@@ -34,7 +34,7 @@ I will **not** rebuild every Calendly feature — only what's visible in your sc
 - If a `google_calendar_connections` row exists, show the connected Google Calendar card exactly like the screenshot.
 
 **Image 8 — Public booking page (invitee, date + time)**
-- Redesign `/$username/$slug` to Calendly's two-column layout: left = host name, event title, duration, meeting details; right = month calendar with dotted "has slots" indicator + time zone selector + time-slot list with "Next" confirm button. "Powered by SlotSync" ribbon.
+- Redesign `/$username/$slug` to Calendly's two-column layout: left = host name, event title, duration, meeting details; right = month calendar with dotted "has slots" indicator + time zone selector + time-slot list with "Next" confirm button. "Powered by Valence" ribbon.
 
 **Image 9 — Public booking page (enter details)**
 - Second step: left column shows chosen date/time summary, right column = Name, Email, "Add guests" (UI only), notes textarea, Schedule Event button.
@@ -60,3 +60,4 @@ Single-use links, Meeting polls, Routing forms, Calendar/Contacts/Automations si
 - Reminders cron already exists at `/api/public/hooks/reminders`.
 
 Confirm and I'll start building.
+

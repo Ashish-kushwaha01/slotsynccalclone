@@ -7,13 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "SlotSync — Scheduling without the back-and-forth" },
+      { title: "Valence — Scheduling without the back-and-forth" },
       {
         name: "description",
         content:
           "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
       },
-      { property: "og:title", content: "SlotSync — Scheduling without the back-and-forth" },
+      { property: "og:title", content: "Valence — Scheduling without the back-and-forth" },
       {
         property: "og:description",
         content: "Share one link, sync your Google Calendar, and let invitees book meetings that respect your real availability. No double-bookings, ever.",
@@ -81,7 +81,7 @@ function Landing() {
             <span className="block text-primary">your real calendar.</span>
           </h1>
           <p className="mt-6 max-w-lg text-lg text-muted-foreground">
-            Share a single booking link. SlotSync syncs with your Google Calendar,
+            Share a single booking link. Valence syncs with your Google Calendar,
             enforces your availability rules, and hands off confirmations and
             reminders to your own automation stack.
           </p>
@@ -176,7 +176,7 @@ function Landing() {
         <div className="container-app flex flex-col items-center justify-between gap-4 py-8 md:flex-row">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Clock className="h-4 w-4" />
-            © {new Date().getFullYear()} SlotSync
+            © {new Date().getFullYear()} Valence
           </div>
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
@@ -189,3 +189,5 @@ function Landing() {
     </div>
   );
 }
+
+

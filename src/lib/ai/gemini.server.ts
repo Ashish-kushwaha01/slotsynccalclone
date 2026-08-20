@@ -24,7 +24,7 @@ function buildPrompt(params: {
   subject?: string | null;
 }): string {
   return [
-    "You are an AI scheduling classifier for SlotSync.",
+    "You are an AI scheduling classifier for Valence.",
     "Return ONLY valid JSON with these keys:",
     "intent, confidence, meeting_date, meeting_time, timezone, booking, reschedule, cancellation, asking_for_information, uncertain.",
     "- intent must be one of: BOOK_MEETING, RESCHEDULE, CANCEL, NEEDS_INFORMATION, NOT_READY, QUESTION, UNCLEAR.",
@@ -110,3 +110,4 @@ export async function extractGeminiDecision(params: {
     raw,
   };
 }
+

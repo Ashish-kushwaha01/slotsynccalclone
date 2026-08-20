@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * SlotSync — clean, professional scheduling UI.
+ * Valence — clean, professional scheduling UI.
  * Deep navy ink, bright blue accents, light-blue selection surfaces,
  * near-black action buttons. Inspired by clean modern scheduling tools.
  */
@@ -76,7 +76,7 @@
   --primary: oklch(0.19 0.03 250);
   --primary-foreground: oklch(0.99 0.005 240);
 
-  /* Brand = SlotSync blue for links, highlights, focus */
+  /* Brand = Valence blue for links, highlights, focus */
   --brand: oklch(0.55 0.18 255);
   --brand-foreground: oklch(0.99 0.005 240);
   --brand-soft: oklch(0.96 0.03 255);
@@ -177,3 +177,4 @@
     radial-gradient(500px 300px at 10% 0%, rgba(56, 189, 248, 0.18), transparent 60%),
     radial-gradient(400px 400px at 100% 0%, rgba(99, 102, 241, 0.16), transparent 60%);
 }
+

@@ -23,8 +23,8 @@ export async function dispatchN8nWebhook(evt: WebhookEvent): Promise<{ ok: boole
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-SlotSync-Signature": signature,
-        "X-SlotSync-Event": evt.event,
+        "X-Valence-Signature": signature,
+        "X-Valence-Event": evt.event,
       },
       body,
     });
@@ -66,3 +66,4 @@ export async function logAndDispatch(
       .eq("id", delivery.id);
   }
 }
+

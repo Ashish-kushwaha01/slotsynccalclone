@@ -27,7 +27,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Scheduling — SlotSync" }] }),
+  head: () => ({ meta: [{ title: "Scheduling — Valence" }] }),
   component: SchedulingPage,
 });
 
@@ -442,3 +442,4 @@ function EmptyTab({ label }: { label: string }) {
     </div>
   );
 }
+

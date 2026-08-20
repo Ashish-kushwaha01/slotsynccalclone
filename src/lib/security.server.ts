@@ -8,8 +8,8 @@ export function verifyWebhookSignature(params: {
   secret: string;
   toleranceMs?: number;
 }): { ok: true } | { ok: false; error: string } {
-  const timestamp = params.request.headers.get("x-slotsync-timestamp");
-  const signature = params.request.headers.get("x-slotsync-signature");
+  const timestamp = params.request.headers.get("x-valence-timestamp");
+  const signature = params.request.headers.get("x-valence-signature");
   if (!timestamp || !signature) {
     return { ok: false, error: "missing_signature" };
   }
@@ -161,7 +161,7 @@ export async function storeIdempotencyResponse(params: {
 }
 
 export function hashRequestBody(bodyText: string): string {
-  return createHmac("sha256", "slotsync-body").update(bodyText).digest("hex");
+  return createHmac("sha256", "valence-body").update(bodyText).digest("hex");
 }
 
 export function extractBearerToken(request: Request): string | null {
@@ -179,3 +179,4 @@ export function verifyTimezone(tz: string | null | undefined): string | null {
     return null;
   }
 }
+

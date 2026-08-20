@@ -41,7 +41,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
         ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
       ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Check your SlotSync environment configuration.`;
+      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Check your Valence environment configuration.`;
       console.error(`[Supabase] ${message}`);
       throw new Error(message);
     }
@@ -107,3 +107,4 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     });
   },
 );
+

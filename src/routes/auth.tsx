@@ -16,8 +16,8 @@ export const Route = createFileRoute("/auth")({
   validateSearch: searchSchema,
   head: () => ({
     meta: [
-      { title: "Sign in to SlotSync" },
-      { name: "description", content: "Sign in or create your SlotSync account." },
+      { title: "Sign in to Valence" },
+      { name: "description", content: "Sign in or create your Valence account." },
     ],
   }),
   component: AuthPage,
@@ -192,7 +192,7 @@ function AuthPage() {
           )}
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            {mode === "signup" ? "Already have an account?" : "New to SlotSync?"}{" "}
+            {mode === "signup" ? "Already have an account?" : "New to Valence?"}{" "}
             <button
               onClick={() => {
                 setPendingEmail(null);
@@ -219,3 +219,4 @@ function GoogleIcon() {
     </svg>
   );
 }
+

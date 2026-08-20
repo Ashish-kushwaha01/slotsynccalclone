@@ -8,7 +8,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/booking/$token")({
-  head: () => ({ meta: [{ title: "You are scheduled — SlotSync" }] }),
+  head: () => ({ meta: [{ title: "You are scheduled — Valence" }] }),
   component: BookingDetail,
 });
 
@@ -157,3 +157,4 @@ function Shell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
